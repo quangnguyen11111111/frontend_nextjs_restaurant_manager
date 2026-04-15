@@ -1,3 +1,4 @@
+"use client";
 import { Menu, Package2 } from "lucide-react";
 import Link from "next/link";
 import DarkModeToggle from "../share/dark-mode-toggle";
@@ -9,15 +10,19 @@ import {
   SheetTrigger,
 } from "../ui/sheet";
 import { Button, buttonVariants } from "../ui/button";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { getAccessTokenFromLocalStorage } from "@/lib/utils";
+import { useEffect, useState } from "react";
 const menuItems = [
   {
     title: "Món ăn",
     href: "/menu",
+    authRequired: false,
   },
   {
     title: "Đơn hàng",
     href: "/orders",
+    authRequired: true,
   },
   {
     title: "Đăng nhập",
@@ -32,7 +37,17 @@ const menuItems = [
 ];
 
 function NavItems({ className }: { className?: string }) {
+  const [isAuth, setIsAuth] = useState<boolean>(false);
+  useEffect(() => {
+    setIsAuth(Boolean(getAccessTokenFromLocalStorage()));
+  }, []);
   return menuItems.map((item) => {
+    if (
+      (!item.authRequired && isAuth) ||
+      (item.authRequired === true && !isAuth)
+    ) {
+      return null;
+    }
     return (
       <Link href={item.href} key={item.href} className={className}>
         {item.title}
@@ -56,7 +71,6 @@ const Header = () => {
       </nav>
       <div className="shrink-0 md:hidden flex items-center">
         <Sheet>
-          {/* CHỈ DÙNG ĐÚNG 1 THẺ SheetTrigger NÀY THÔI 👇 */}
           <SheetTrigger
             className={buttonVariants({ variant: "outline", size: "icon" })}
           >

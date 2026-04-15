@@ -16,9 +16,11 @@ import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { useLoginMutation } from "@/queries/useAuth";
 import { toast } from "sonner";
 import { handleErrorApi } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
   const loginMutation = useLoginMutation();
+  const route = useRouter();
   const form = useForm<LoginBodyType>({
     resolver: zodResolver(LoginBody),
     defaultValues: {
@@ -30,6 +32,7 @@ export default function LoginForm() {
     if (loginMutation.isPending) return;
     try {
       const result = await loginMutation.mutateAsync(data);
+      route.refresh();
       toast.success(result.payload.message);
     } catch (error) {
       handleErrorApi({
@@ -48,8 +51,13 @@ export default function LoginForm() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form className="space-y-2 max-w-150 shrink-0 w-full" noValidate onSubmit={form.handleSubmit(onSubmit, err=>{console.log(err);
-          })}>
+          <form
+            className="space-y-2 max-w-150 shrink-0 w-full"
+            noValidate
+            onSubmit={form.handleSubmit(onSubmit, (err) => {
+              console.log(err);
+            })}
+          >
             <div className="grid gap-4">
               <FormField
                 control={form.control}

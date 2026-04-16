@@ -1,11 +1,22 @@
 
 import accountApiRequest from "@/apiRequest/account"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 
-const useAccountProfileQuery = () => {
+export const useAccountMeQuery = () => {
     return useQuery({
-        queryKey:["account-profile"],
+        queryKey:["account-me"],
         queryFn: accountApiRequest.me
     })
 }
-export default useAccountProfileQuery
+
+export const useUpdateMeMutation = () => {
+    return useMutation({
+        mutationFn: accountApiRequest.updateMe
+    })
+}
+
+export const useChangePasswordMutation = () => {
+    return useMutation({
+        mutationFn: accountApiRequest.changePassword
+    })
+}

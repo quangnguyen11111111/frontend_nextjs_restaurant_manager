@@ -82,7 +82,8 @@ export type UpdateEmployeeAccountBodyType = z.TypeOf<typeof UpdateEmployeeAccoun
 export const UpdateMeBody = z
   .object({
     name: z.string().trim().min(2).max(256),
-    avatar: z.string().url().optional()
+    avatar: z.string().url().optional(),
+    avatarS3Key: z.string().optional()
   })
   .strict()
 

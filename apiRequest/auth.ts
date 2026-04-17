@@ -12,12 +12,8 @@ const authApiRequest = {
     http.post<LoginResType>("/api/auth/login", body, {
       baseUrl: "",
     }),
-  sLogout: (body: LogoutBodyType & { accessToken: string }) =>
-    http.post("/api/auth/logout", {refreshToken: body.refreshToken}, {
-      headers: {
-        Authorization: `Bearer ${body.accessToken}`,
-      },
-    }),
+  sLogout: (body: LogoutBodyType) =>
+    http.post("/api/auth/logout", { refreshToken: body.refreshToken }),
   cLogout: () =>
     http.post("/api/auth/logout", null, {
       baseUrl: "",

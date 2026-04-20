@@ -17,8 +17,15 @@ import { useLoginMutation } from "@/queries/useAuth";
 import { toast } from "sonner";
 import { handleErrorApi } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function LoginForm() {
+  console.log("Tôi đã ở đây");
+  // Đảm bảo khi đã vào login thì không có accessToken và refreshToken nào còn lưu trong localStorage nữa
+  useEffect(() => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+  }, []);
   const loginMutation = useLoginMutation();
   const route = useRouter();
   const form = useForm<LoginBodyType>({

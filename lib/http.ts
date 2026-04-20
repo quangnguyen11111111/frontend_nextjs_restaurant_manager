@@ -1,10 +1,12 @@
 import authApiRequest from "@/apiRequest/auth";
 import envConfig from "@/config";
 import { normalizePath } from "@/lib/utils";
-import { LoginResType } from "@/schemaValidations/auth.schema";
+import {
+  LoginResType,
+  RefreshTokenResType,
+} from "@/schemaValidations/auth.schema";
 import { redirect } from "next/navigation";
 import { toast } from "sonner";
-import { no } from "zod/locales";
 
 type CustomOptions = Omit<RequestInit, "method"> & {
   baseUrl?: string | undefined;
@@ -63,7 +65,9 @@ const request = async <Response>(
   method: "GET" | "POST" | "PUT" | "DELETE",
   url: string,
   options?: CustomOptions | undefined,
+  isRetryAfterRefresh = false,
 ) => {
+  const normalizedUrl = normalizePath(url);
   let body: FormData | string | undefined = undefined;
   if (options?.body instanceof FormData) {
     body = options.body;
@@ -118,6 +122,34 @@ const request = async <Response>(
         },
       );
     } else if (res.status === AUTHENTICATION_ERROR_STATUS) {
+      const errorCode = (payload as any)?.code;
+
+      const shouldTryRefreshToken =
+        isClient &&
+        errorCode === "TOKEN_EXPIRED" &&
+        !isRetryAfterRefresh &&
+        ![
+          "api/auth/login",
+          "api/auth/logout",
+          "api/auth/refresh-token",
+        ].includes(normalizedUrl);
+
+      if (shouldTryRefreshToken) {
+        try {
+          const refreshRes = await authApiRequest.cRefreshToken();
+          const refreshData = (refreshRes.payload as any)?.data;
+          if (!refreshData?.accessToken || !refreshData?.refreshToken) {
+            throw new Error("Refresh token request failed");
+          }
+          localStorage.setItem("accessToken", refreshData.accessToken);
+          localStorage.setItem("refreshToken", refreshData.refreshToken);
+
+          return request<Response>(method, url, options, true);
+        } catch (error) {
+          // Fall through to current unauthorized handling.
+        }
+      }
+
       const baseLogoutRequest = async () => {
         await authApiRequest.cLogout();
         toast.error("Gọi API thất bại, vui lòng đăng nhập lại");
@@ -135,14 +167,16 @@ const request = async <Response>(
   }
   // Đảm bảo logic dưới đây chỉ chạy ở phía client (browser)
   if (isClient) {
-    const nomolizedUrl = normalizePath(url);
-    if (nomolizedUrl === "api/auth/login") {
+    if (normalizedUrl === "api/auth/login") {
       const { accessToken, refreshToken } = (payload as LoginResType).data;
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
-    } else if (nomolizedUrl === "api/auth/logout") {
-      console.log("toi da đến đây 152");
-
+    } else if (normalizedUrl === "api/auth/refresh-token") {
+      const { accessToken, refreshToken } = (payload as RefreshTokenResType)
+        .data;
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
+    } else if (normalizedUrl === "api/auth/logout") {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
     }

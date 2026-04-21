@@ -16,12 +16,20 @@ import {
 } from "@/schemaValidations/account.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Upload } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { z } from "zod";
+import {
+  useAccountMeQuery,
+  useGetAccountQuery,
+  useUpdateAccountMutation,
+} from "@/queries/useAccount";
+import { useUploadAvatarMutation } from "@/queries/useMedia";
+import { toast } from "sonner";
+import { handleErrorApi } from "@/lib/utils";
 
 export default function EditEmployee({
   id,
@@ -34,6 +42,14 @@ export default function EditEmployee({
 }) {
   const [file, setFile] = useState<File | null>(null);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
+  const { data: accountData } = useGetAccountQuery({
+    id: id as number,
+    enabled: Boolean(id),
+  });
+  const updateAccountMutation = useUpdateAccountMutation();
+  const uploadAvatarMutation = useUploadAvatarMutation();
+  const { data: accountMeData } = useAccountMeQuery();
+  const account = accountMeData?.payload.data;
   const form = useForm<z.input<typeof UpdateEmployeeAccountBody>>({
     resolver: zodResolver(UpdateEmployeeAccountBody),
     defaultValues: {
@@ -56,12 +72,62 @@ export default function EditEmployee({
     return avatar;
   }, [file, avatar]);
 
+  useEffect(() => {
+    if (accountData) {
+      form.reset({
+        name: accountData.payload.data.name,
+        email: accountData.payload.data.email,
+        role: accountData.payload.data.role,
+        avatar: accountData.payload.data.avatar ?? undefined,
+        changePassword: false,
+        password: form.getValues("password"),
+        confirmPassword: form.getValues("confirmPassword"),
+      });
+    }
+  }, [accountData, form]);
+
+  const onSubmit = async (data: UpdateEmployeeAccountBodyType) => {
+    if (updateAccountMutation.isPending || uploadAvatarMutation.isPending)
+      return;
+    try {
+      let body: UpdateEmployeeAccountBodyType & { id: number } = {
+        ...data,
+        id: id as number,
+      };
+      if (file) {
+        const formData = new FormData();
+        formData.append("image", file);
+
+        const uploadResult = await uploadAvatarMutation.mutateAsync(formData);
+        const imageUrl = uploadResult.payload.data;
+        body = {
+          ...body,
+          avatar: imageUrl.avatar,
+          avatarS3Key: imageUrl.avatarS3Key,
+          userIdOfUploader: account?.id,
+        };
+      } else if (!file) {
+        delete body.avatar;
+      }
+      const result = await updateAccountMutation.mutateAsync(body);
+      toast.success(result.payload.message);
+      setId(undefined);
+      setFile(null);
+      onSubmitSuccess && onSubmitSuccess();
+    } catch (error: any) {
+      handleErrorApi({
+        error,
+        setError: form.setError,
+      });
+    }
+  };
   return (
     <Dialog
       open={Boolean(id)}
       onOpenChange={(value) => {
         if (!value) {
           setId(undefined);
+          setFile(null);
         }
       }}
     >
@@ -77,6 +143,7 @@ export default function EditEmployee({
             noValidate
             className="grid auto-rows-max items-start gap-4 md:gap-8"
             id="edit-employee-form"
+            onSubmit={form.handleSubmit(onSubmit)}
           >
             <div className="grid gap-4 py-4">
               <FormField

@@ -35,6 +35,7 @@ export const CreateEmployeeAccountBody = z
     password: z.string().min(6).max(100),
     confirmPassword: z.string().min(6).max(100),
     avatarS3Key: z.string().optional(),
+    userIdOfUploader: z.number().optional(),
   })
   .strict()
   .superRefine(({ confirmPassword, password }, ctx) => {

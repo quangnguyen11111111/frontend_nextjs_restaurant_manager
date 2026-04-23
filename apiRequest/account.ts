@@ -7,7 +7,6 @@ import {
   UpdateEmployeeAccountBodyType,
   UpdateMeBodyType,
 } from "@/schemaValidations/account.schema";
-import { get } from "http";
 
 const accountApiRequest = {
   me: () => http.get<AccountResType>("/api/accounts/me"),
@@ -16,10 +15,11 @@ const accountApiRequest = {
   changePassword: (body: ChangePasswordBodyType) =>
     http.put<AccountResType>("/api/accounts/change-password", body),
 
-  list: () => http.get<AccountListResType>("/api/accounts"),
+  list: (page: number) =>
+    http.get<AccountListResType>(`/api/accounts?page=${page}`),
   addEmployee: (body: CreateEmployeeAccountBodyType) =>
     http.post<AccountResType>("/api/accounts/", body),
-  updateEmployee: (id: number, body: UpdateEmployeeAccountBodyType  ) =>
+  updateEmployee: (id: number, body: UpdateEmployeeAccountBodyType) =>
     http.put<AccountResType>(`/api/accounts/detail/${id}`, body),
   getEmployee: (id: number) =>
     http.get<AccountResType>(`/api/accounts/detail/${id}`),

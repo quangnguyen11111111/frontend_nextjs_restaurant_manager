@@ -8,12 +8,20 @@ export const AccountSchema = z.object({
   role: z.enum([Role.Owner, Role.Employee]),
   avatar: z.string().nullable(),
 });
-
+const paginationMeta = z.object({
+    page: z.number(),
+    perPage: z.number(),
+    totalItems: z.number(),
+    totalPages: z.number(),
+    hasNextPage: z.boolean(),
+    hasPreviousPage: z.boolean(),
+});
 export type AccountType = z.TypeOf<typeof AccountSchema>;
 
 export const AccountListRes = z.object({
   data: z.array(AccountSchema),
   message: z.string(),
+  pagination: paginationMeta,
 });
 
 export type AccountListResType = z.TypeOf<typeof AccountListRes>;

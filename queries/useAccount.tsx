@@ -21,16 +21,22 @@ export const useChangePasswordMutation = () => {
   });
 };
 
-export const useGetAccountListQuery = () => {
+export const useGetAccountListQuery = (page: number) => {
   return useQuery({
-    queryKey: ["accounts-list"],
-    queryFn: accountApiRequest.list,
+    queryKey: ["accounts-list", page],
+    queryFn: () => accountApiRequest.list(page),
   });
 };
 
-export const useGetAccountQuery = ({ id, enabled }: { id: number; enabled: boolean }) => {
+export const useGetAccountQuery = ({
+  id,
+  enabled,
+}: {
+  id: number;
+  enabled: boolean;
+}) => {
   return useQuery({
-    queryKey: ["accounts-list", id],
+    queryKey: ["account-detail", id],
     queryFn: () => accountApiRequest.getEmployee(id),
     enabled,
   });
@@ -54,8 +60,11 @@ export const useUpdateAccountMutation = () => {
       ...body
     }: UpdateEmployeeAccountBodyType & { id: number }) =>
       accountApiRequest.updateEmployee(id, body),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["accounts-list"] });
+      queryClient.invalidateQueries({
+        queryKey: ["account-detail", variables.id],
+      });
     },
   });
 };

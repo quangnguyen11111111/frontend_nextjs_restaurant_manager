@@ -27,7 +27,7 @@ export default function UpdateProfileForm() {
     resolver: zodResolver(UpdateMeBody),
     defaultValues: {
       name: "",
-      avatar: "",
+      avatar: undefined,
     },
   });
   const avatar = form.watch("avatar");
@@ -37,7 +37,7 @@ export default function UpdateProfileForm() {
     if (accountProfile) {
       const { avatar, name } = accountProfile.payload.data;
       form.reset({
-        avatar: avatar ?? "",
+        avatar: avatar ?? undefined,
         name,
       });
     }
@@ -55,6 +55,7 @@ export default function UpdateProfileForm() {
     if (updateMeMutation.isPending || uploadAvatarMutation.isPending) return;
     try {
       let body = data;
+
       if (file) {
         const formData = new FormData();
         formData.append("image", file);
@@ -71,6 +72,7 @@ export default function UpdateProfileForm() {
       }
       const result = await updateMeMutation.mutateAsync(body);
       toast.success(result.payload.message);
+      setFile(null);
       refetch();
     } catch (error) {}
   };
@@ -108,8 +110,11 @@ export default function UpdateProfileForm() {
                         onChange={(e) => {
                           const file = e.target?.files?.[0];
                           if (file) {
-                            setFile(file)
-                            field.onChange('http://fake-url.com/avatar.png') 
+                            setFile(file);
+                            !avatar &&
+                              field.onChange(
+                                "http://localhost:3000/avatar.png",
+                              );
                           }
                         }}
                       />

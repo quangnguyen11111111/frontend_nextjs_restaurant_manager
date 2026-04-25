@@ -2,14 +2,20 @@ import dishApiRequest from "@/apiRequest/dish";
 import { UpdateDishBodyType } from "@/schemaValidations/dish.schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export const useGetDishList = (page: number) => {
+export const useGetDishListQuery = (page: number) => {
   return useQuery({
     queryKey: ["dish-list", page],
     queryFn: () => dishApiRequest.list(page),
   });
 };
 
-export const useGetDishDetail = (id: number, enabled: boolean) => {
+export const useGetDishDetailQuery = ({
+  id,
+  enabled,
+}: {
+  id: number;
+  enabled: boolean;
+}) => {
   return useQuery({
     queryKey: ["dish-detail", id],
     queryFn: () => dishApiRequest.getDetail(id),

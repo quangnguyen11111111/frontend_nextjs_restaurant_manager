@@ -41,6 +41,7 @@ import { DishListResType } from "@/schemaValidations/dish.schema";
 import EditDish from "./edit-dish";
 import AddDish from "./add-dish";
 import { AlertDialogDeleteDish } from "@/components/share/manage/dishes/AlertDialogDeleteDish";
+import { useGetDishListQuery } from "@/queries/useDish";
 
 type DishItem = DishListResType["data"][0];
 
@@ -136,23 +137,20 @@ export const columns: ColumnDef<DishItem>[] = [
   },
 ];
 
-// Số lượng item trên 1 trang
-const PAGE_SIZE = 10;
 export default function DishTable() {
   const searchParam = useSearchParams();
   const page = searchParam.get("page") ? Number(searchParam.get("page")) : 1;
-  const pageIndex = page - 1;
+  const currentPage = Number.isFinite(page) && page > 0 ? page : 1;
   const [dishIdEdit, setDishIdEdit] = useState<number | undefined>();
   const [dishDelete, setDishDelete] = useState<DishItem | null>(null);
-  const data: any[] = [];
+  const { data: dishListData, isPending } = useGetDishListQuery(currentPage);
+  const data = dishListData?.payload.data ?? [];
+  const paginationMeta = dishListData?.payload.pagination;
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
-  const [pagination, setPagination] = useState({
-    pageIndex, // Gía trị mặc định ban đầu, không có ý nghĩa khi data được fetch bất đồng bộ
-    pageSize: PAGE_SIZE, //default page size
-  });
+  const [pagination, setPagination] = useState({});
 
   const table = useReactTable({
     data,
@@ -172,16 +170,8 @@ export default function DishTable() {
       columnFilters,
       columnVisibility,
       rowSelection,
-      pagination,
     },
   });
-
-  useEffect(() => {
-    table.setPagination({
-      pageIndex,
-      pageSize: PAGE_SIZE,
-    });
-  }, [table, pageIndex]);
 
   return (
     <DishTableContext.Provider
@@ -227,7 +217,18 @@ export default function DishTable() {
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows?.length ? (
+              {isPending ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    <div className="flex justify-center items-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
@@ -258,14 +259,13 @@ export default function DishTable() {
         </div>
         <div className="flex items-center justify-end space-x-2 py-4">
           <div className="text-xs text-muted-foreground py-4 flex-1 ">
-            Hiển thị{" "}
-            <strong>{table.getPaginationRowModel().rows.length}</strong> trong{" "}
-            <strong>{data.length}</strong> kết quả
+            Hiển thị <strong>{data.length}</strong> trong{" "}
+            <strong>{paginationMeta?.totalItems ?? 0}</strong> kết quả
           </div>
           <div>
             <AutoPagination
-              page={table.getState().pagination.pageIndex + 1}
-              pageSize={table.getPageCount()}
+              page={paginationMeta?.page ?? currentPage}
+              pageSize={Math.max(paginationMeta?.totalPages ?? 1, 1)}
               pathname="/manage/dishes"
             />
           </div>

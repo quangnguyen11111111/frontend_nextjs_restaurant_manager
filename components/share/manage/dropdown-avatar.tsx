@@ -26,7 +26,7 @@ export default function DropdownAvatar() {
       await logoutMutation.mutateAsync();
       route.refresh();
     } catch (error: any) {
-      handleErrorApi(error);
+      handleErrorApi({ error });
     }
   };
   return (

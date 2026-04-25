@@ -1,8 +1,11 @@
 import http from "@/lib/http";
-import { UploadImageResType } from "@/schemaValidations/media.schema";
+import { UploadAvatarResType, UploadDishImageResType } from "@/schemaValidations/media.schema";
+
 
 const mediaApiRequest = {
-  upload: (formData: FormData) =>
-    http.post<UploadImageResType>("/api/accounts/me/avatar", formData),
+  uploadAvatar: (formData: FormData) =>
+    http.post<UploadAvatarResType>("/api/accounts/me/avatar", formData),
+  uploadDishImage: (formData: FormData) =>
+    http.post<UploadDishImageResType>("api/dishes/image", formData),
 };
 export default mediaApiRequest;

@@ -96,7 +96,7 @@ export default function AddEmployee() {
           </span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-screen overflow-auto">
+      <DialogContent className="sm:max-w-150 max-h-screen overflow-auto">
         <DialogHeader>
           <DialogTitle>Tạo tài khoản</DialogTitle>
           <DialogDescription>
@@ -118,7 +118,7 @@ export default function AddEmployee() {
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex gap-2 items-start justify-start">
-                      <Avatar className="aspect-square w-[100px] h-[100px] rounded-md object-cover">
+                      <Avatar className="aspect-square w-25 h-25 rounded-md object-cover">
                         <AvatarImage src={previewAvatarFromFile()} />
                         <AvatarFallback className="rounded-none">
                           {name || "Avatar"}
@@ -140,7 +140,7 @@ export default function AddEmployee() {
                         className="hidden"
                       />
                       <button
-                        className="flex aspect-square w-[100px] items-center justify-center rounded-md border border-dashed"
+                        className="flex aspect-square w-25 items-center justify-center rounded-md border border-dashed"
                         type="button"
                         onClick={() => avatarInputRef.current?.click()}
                       >

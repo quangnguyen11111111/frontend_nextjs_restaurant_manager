@@ -57,8 +57,8 @@ export default function EditEmployee({
       email: "",
       role: "Employee",
       avatar: undefined,
-      password: "",
-      confirmPassword: "",
+      password: undefined,
+      confirmPassword: undefined,
       changePassword: false,
     },
   });
@@ -73,17 +73,20 @@ export default function EditEmployee({
   }, [file, avatar]);
 
   useEffect(() => {
-    if (accountData) {
-      form.reset({
-        name: accountData.payload.data.name,
-        email: accountData.payload.data.email,
-        role: accountData.payload.data.role,
-        avatar: accountData.payload.data.avatar ?? undefined,
-        changePassword: false,
-        password: form.getValues("password"),
-        confirmPassword: form.getValues("confirmPassword"),
-      });
-    }
+    const accountDetail = accountData?.payload?.data;
+
+    if (!accountDetail || Array.isArray(accountDetail)) return;
+
+    form.reset({
+      name: accountDetail.name ?? "",
+      email: accountDetail.email ?? "",
+      role: accountDetail.role ?? "Employee",
+      avatar: accountDetail.avatar ?? undefined,
+      changePassword: false,
+      password: undefined,
+      confirmPassword: undefined,
+    });
+    setFile(null);
   }, [accountData, form]);
 
   const onSubmit = async (data: UpdateEmployeeAccountBodyType) => {
@@ -108,6 +111,10 @@ export default function EditEmployee({
         };
       } else if (!file) {
         delete body.avatar;
+      }
+      if (!changePassword) {
+        delete body.password;
+        delete body.confirmPassword;
       }
       const result = await updateAccountMutation.mutateAsync(body);
       toast.success(result.payload.message);
@@ -137,7 +144,8 @@ export default function EditEmployee({
         <DialogHeader>
           <DialogTitle>Cập nhật tài khoản</DialogTitle>
           <DialogDescription>
-            Các trường tên, email, mật khẩu là bắt buộc
+            Các trường tên, email là bắt buộc. Mật khẩu chỉ bắt buộc khi bật đổi
+            mật khẩu.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -196,7 +204,12 @@ export default function EditEmployee({
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
                       <Label htmlFor="name">Tên</Label>
                       <div className="col-span-3 w-full space-y-2">
-                        <Input id="name" className="w-full" {...field} />
+                        <Input
+                          id="name"
+                          className="w-full"
+                          {...field}
+                          value={field.value ?? ""}
+                        />
                         <FormMessage />
                       </div>
                     </div>
@@ -211,7 +224,12 @@ export default function EditEmployee({
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
                       <Label htmlFor="email">Email</Label>
                       <div className="col-span-3 w-full space-y-2">
-                        <Input id="email" className="w-full" {...field} />
+                        <Input
+                          id="email"
+                          className="w-full"
+                          {...field}
+                          value={field.value ?? ""}
+                        />
                         <FormMessage />
                       </div>
                     </div>
@@ -227,8 +245,19 @@ export default function EditEmployee({
                       <Label htmlFor="email">Đổi mật khẩu</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
+                          checked={Boolean(field.value)}
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            if (!checked) {
+                              form.setValue("password", undefined);
+                              form.setValue("confirmPassword", undefined);
+                              form.clearErrors([
+                                "password",
+                                "confirmPassword",
+                                "changePassword",
+                              ]);
+                            }
+                          }}
                         />
                         <FormMessage />
                       </div>
@@ -250,6 +279,7 @@ export default function EditEmployee({
                             className="w-full"
                             type="password"
                             {...field}
+                            value={field.value ?? ""}
                           />
                           <FormMessage />
                         </div>
@@ -274,6 +304,7 @@ export default function EditEmployee({
                             className="w-full"
                             type="password"
                             {...field}
+                            value={field.value ?? ""}
                           />
                           <FormMessage />
                         </div>

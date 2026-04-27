@@ -9,6 +9,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useDeleteAccountMutation } from "@/queries/useAccount";
+import { toast } from "sonner";
+import { handleErrorApi } from "@/lib/utils";
 
 type AccountItem = AccountListResType["data"][0];
 export function AlertDialogDeleteAccount({
@@ -18,7 +21,21 @@ export function AlertDialogDeleteAccount({
   employeeDelete: AccountItem | null;
   setEmployeeDelete: (value: AccountItem | null) => void;
 }) {
+  const deleteAccount = useDeleteAccountMutation()
+  const handleDelete = async() => {
+    if(employeeDelete) {
+      try {
+       const result = await deleteAccount.mutateAsync(employeeDelete.id)
+       setEmployeeDelete(null)
+       toast.success(result.payload.message)
+      } catch (error:any) {
+        handleErrorApi(error)
+        
+      }
+    }
+  }
   return (
+    
     <AlertDialog
       open={Boolean(employeeDelete)}
       onOpenChange={(value) => {
@@ -40,7 +57,9 @@ export function AlertDialogDeleteAccount({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction>Continue</AlertDialogAction>
+          <AlertDialogAction onClick={handleDelete}>
+            Continue
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

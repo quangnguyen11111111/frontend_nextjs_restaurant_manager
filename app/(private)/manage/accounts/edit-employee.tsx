@@ -57,8 +57,8 @@ export default function EditEmployee({
       email: "",
       role: "Employee",
       avatar: undefined,
-      password: undefined,
-      confirmPassword: undefined,
+      password: "",
+      confirmPassword: "",
       changePassword: false,
     },
   });
@@ -113,6 +113,7 @@ export default function EditEmployee({
       toast.success(result.payload.message);
       setId(undefined);
       setFile(null);
+      form.reset();
       onSubmitSuccess && onSubmitSuccess();
     } catch (error: any) {
       handleErrorApi({
@@ -128,6 +129,7 @@ export default function EditEmployee({
         if (!value) {
           setId(undefined);
           setFile(null);
+          form.reset();
         }
       }}
     >

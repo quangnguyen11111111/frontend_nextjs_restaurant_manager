@@ -21,7 +21,7 @@ import { useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAddAccountMutation } from "@/queries/useAccount";
+import { useAccountMeQuery, useAddAccountMutation } from "@/queries/useAccount";
 import { useUploadAvatarMutation } from "@/queries/useMedia";
 import { toast } from "sonner";
 import { handleErrorApi } from "@/lib/utils";
@@ -31,6 +31,8 @@ export default function AddEmployee() {
   const [open, setOpen] = useState(false);
   const addAccountMutation = useAddAccountMutation();
   const uploadAvatarMutation = useUploadAvatarMutation();
+    const { data: accountMeData } = useAccountMeQuery();
+    const account = accountMeData?.payload.data;
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const form = useForm<CreateEmployeeAccountBodyType>({
     resolver: zodResolver(CreateEmployeeAccountBody),
@@ -68,6 +70,7 @@ export default function AddEmployee() {
           ...body,
           avatar: imageUrl.avatar,
           avatarS3Key: imageUrl.avatarS3Key,
+          userIdOfUploader: account?.id
         };
       } else if (!file) {
         delete body.avatar;

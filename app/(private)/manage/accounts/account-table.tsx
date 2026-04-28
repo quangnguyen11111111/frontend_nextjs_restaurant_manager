@@ -70,7 +70,7 @@ export const columns: ColumnDef<AccountType>[] = [
     header: "Avatar",
     cell: ({ row }) => (
       <div>
-        <Avatar className="aspect-square w-[100px] h-[100px] rounded-md object-cover">
+        <Avatar className="aspect-square w-25 h-25 rounded-md object-cover">
           <AvatarImage src={row.getValue("avatar")} />
           <AvatarFallback className="rounded-none">
             {row.original.name}
@@ -143,7 +143,7 @@ export default function AccountTable() {
   const [employeeDelete, setEmployeeDelete] = useState<AccountItem | null>(
     null,
   );
-  const { data: accountListData, isPending } =
+  const { data: accountListData, isPending, isError } =
     useGetAccountListQuery(currentPage);
   const data = accountListData?.payload.data ?? [];
   const paginationMeta = accountListData?.payload.pagination;
@@ -169,7 +169,6 @@ export default function AccountTable() {
       rowSelection,
     },
   });
-
   return (
     <AccountTableContext.Provider
       value={{

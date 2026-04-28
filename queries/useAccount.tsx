@@ -6,6 +6,7 @@ export const useAccountMeQuery = () => {
   return useQuery({
     queryKey: ["account-me"],
     queryFn: accountApiRequest.me,
+    
   });
 };
 

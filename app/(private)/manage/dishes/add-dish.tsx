@@ -38,7 +38,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useAddDishMutation } from "@/queries/useDish";
 import { useUploadDishImageMutation } from "@/queries/useMedia";
-import { useAccountMeQuery } from "@/queries/useAccount";
 import { toast } from "sonner";
 
 export default function AddDish() {
@@ -68,6 +67,7 @@ export default function AddDish() {
   const reset = () => {
     form.reset();
     setFile(null);
+    setOpen(false);
   };
   const onSubmit = async (data: CreateDishBodyType) => {
     if (addDishMutation.isPending || uploadDishImageMutation.isPending) return;
@@ -89,7 +89,6 @@ export default function AddDish() {
       const result = await addDishMutation.mutateAsync(body);
       toast.success(result.payload.message);
       reset();
-      setOpen(false);
     } catch (error: any) {
       handleErrorApi({
         error,
@@ -98,7 +97,13 @@ export default function AddDish() {
     }
   };
   return (
-    <Dialog onOpenChange={setOpen} open={open}>
+    <Dialog
+      onOpenChange={(value) => {
+        if (!value) reset();
+        setOpen(value);
+      }}
+      open={open}
+    >
       <DialogTrigger asChild>
         <Button size="sm" className="h-7 gap-1">
           <PlusCircle className="h-3.5 w-3.5" />

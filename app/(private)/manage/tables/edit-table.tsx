@@ -43,8 +43,6 @@ import {
 } from "@/queries/useTable";
 import { useEffect } from "react";
 import QrCodeTable from "@/components/share/manage/tables/QrCodeTable";
-import { TableCell, TableRow } from "@/components/ui/table";
-import { columns } from "./table-table";
 import { toast } from "sonner";
 
 export default function EditTable({
@@ -60,7 +58,7 @@ export default function EditTable({
     resolver: zodResolver(UpdateTableBody),
     defaultValues: {
       capacity: 2,
-      status: TableStatus.Hidden,
+      status: undefined,
       changeToken: false,
     },
   });
@@ -108,14 +106,22 @@ export default function EditTable({
       onOpenChange={(value) => {
         if (!value) {
           setId(undefined);
-          form.reset();
+          form.reset({
+            capacity: 2,
+            status: undefined,
+            changeToken: false,
+          });
         }
       }}
     >
       <DialogContent
         className="sm:max-w-150 max-h-screen overflow-auto"
         onCloseAutoFocus={() => {
-          form.reset();
+          form.reset({
+            capacity: 2,
+            status: undefined,
+            changeToken: false,
+          });
           setId(undefined);
         }}
       >
@@ -129,7 +135,7 @@ export default function EditTable({
             id="edit-table-form"
             onSubmit={form.handleSubmit(onSubmit)}
           >
-            {isPending ? (
+            {form.watch("status") === undefined ? (
               <div className="flex justify-center items-center">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
               </div>
@@ -158,16 +164,16 @@ export default function EditTable({
                       <div className="grid grid-cols-4 items-center justify-items-start gap-4">
                         <Label htmlFor="price">Sức chứa (người)</Label>
                         <div className="col-span-3 w-full space-y-2">
-                         <Input
-                          id="price"
-                          type="number"
-                          className="w-full"
-                          value={field.value ?? 0}
-                          onChange={(e) => {
-                            const value = e.target.valueAsNumber;
-                            field.onChange(isNaN(value) ? "" : value);
-                          }}
-                        />
+                          <Input
+                            id="price"
+                            type="number"
+                            className="w-full"
+                            value={field.value ?? 0}
+                            onChange={(e) => {
+                              const value = e.target.valueAsNumber;
+                              field.onChange(isNaN(value) ? "" : value);
+                            }}
+                          />
                           <FormMessage />
                         </div>
                       </div>

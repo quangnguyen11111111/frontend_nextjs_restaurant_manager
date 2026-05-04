@@ -6,7 +6,12 @@ import { toast } from "sonner";
 import authApiRequest from "@/apiRequest/auth";
 import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
-import { DishStatus, OrderStatus, TableStatus } from "@/constants/type";
+import {
+  CategoryStatus,
+  DishStatus,
+  OrderStatus,
+  TableStatus,
+} from "@/constants/type";
 import envConfig from "@/config";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -123,6 +128,19 @@ export const getVietnameseDishStatus = (
   }
 };
 
+export const getVietnameseCategoryStatus = (
+  status?: (typeof CategoryStatus)[keyof typeof CategoryStatus] | null,
+) => {
+  switch (status) {
+    case CategoryStatus.Active:
+      return "Đang hoạt động";
+    case CategoryStatus.Inactive:
+      return "Tạm ẩn";
+    default:
+      return "-";
+  }
+};
+
 export const getVietnameseOrderStatus = (
   status: (typeof OrderStatus)[keyof typeof OrderStatus],
 ) => {
@@ -151,6 +169,28 @@ export const getVietnameseTableStatus = (
     default:
       return "Ẩn";
   }
+};
+
+type CategoryTreeNode = {
+  id: number;
+  name: string;
+  children?: CategoryTreeNode[];
+};
+
+export const flattenCategoryTree = (
+  categories: CategoryTreeNode[],
+  prefix = "",
+) => {
+  const result: { id: number; label: string }[] = [];
+
+  categories.forEach((category) => {
+    result.push({ id: category.id, label: `${prefix}${category.name}` });
+    if (category.children && category.children.length > 0) {
+      result.push(...flattenCategoryTree(category.children, `${prefix}-- `));
+    }
+  });
+
+  return result;
 };
 
 export const getTableLink = ({

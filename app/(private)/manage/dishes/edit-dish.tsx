@@ -22,7 +22,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getVietnameseDishStatus, handleErrorApi } from "@/lib/utils";
+import {
+  flattenCategoryTree,
+  getVietnameseDishStatus,
+  handleErrorApi,
+} from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -41,7 +45,7 @@ import {
   useUpdateDishMutation,
 } from "@/queries/useDish";
 import { useUploadDishImageMutation } from "@/queries/useMedia";
-import { useAccountMeQuery } from "@/queries/useAccount";
+import { useGetCategoryTreeQuery } from "../../../../queries/useCategory";
 import { toast } from "sonner";
 
 export default function EditDish({
@@ -57,10 +61,13 @@ export default function EditDish({
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const updateDishMutation = useUpdateDishMutation();
   const uploadImageMutation = useUploadDishImageMutation();
-  const { data: dishData } = useGetDishDetailQuery({
-    id: id as number,
-    enabled: Boolean(id),
-  });
+  const { data: categoryTreeData, isPending: isCategoryTreeLoading } =
+    useGetCategoryTreeQuery();
+  const { data: dishData, isPending: isDishDataLoading } =
+    useGetDishDetailQuery({
+      id: id as number,
+      enabled: Boolean(id),
+    });
   const form = useForm<UpdateDishBodyType>({
     resolver: zodResolver(UpdateDishBody),
     defaultValues: {
@@ -68,7 +75,8 @@ export default function EditDish({
       description: "",
       price: 0,
       image: undefined,
-      status: DishStatus.Unavailable,
+      category_id: undefined,
+      status: undefined,
     },
   });
   const image = form.watch("image");
@@ -79,9 +87,15 @@ export default function EditDish({
     }
     return image;
   }, [file, image]);
+  const categoryOptions = useMemo(
+    () => flattenCategoryTree(categoryTreeData?.payload.data ?? []),
+    [categoryTreeData],
+  );
+  console.log("kiểm tra dishData", dishData);
 
   useEffect(() => {
-    const dishDetail = dishData?.payload?.data;
+    if (!dishData) return;
+    const dishDetail = dishData.payload.data;
 
     if (!dishDetail || Array.isArray(dishDetail)) return;
 
@@ -90,10 +104,16 @@ export default function EditDish({
       description: dishDetail.description ?? "",
       price: dishDetail.price ?? 0,
       image: dishDetail.image ?? undefined,
-      status: dishDetail.status ?? DishStatus.Unavailable,
+      category_id: dishDetail.category_id ?? undefined,
+      status: dishDetail.status ?? undefined,
     });
     setFile(null);
   }, [dishData, form]);
+  useEffect(() => {
+    if (!form.getValues("category_id") && categoryOptions.length > 0) {
+      form.setValue("category_id", categoryOptions[0].id);
+    }
+  }, [categoryOptions, form]);
 
   const onSubmit = async (data: UpdateDishBodyType) => {
     if (updateDishMutation.isPending || uploadImageMutation.isPending) return;
@@ -127,7 +147,6 @@ export default function EditDish({
       });
     }
   };
-
   return (
     <Dialog
       open={Boolean(id)}
@@ -135,7 +154,14 @@ export default function EditDish({
         if (!value) {
           setId(undefined);
           setFile(null);
-          form.reset();
+          form.reset({
+            name: "",
+            description: "",
+            price: 0,
+            image: undefined,
+            category_id: undefined,
+            status: undefined,
+          });
         }
       }}
     >
@@ -143,9 +169,10 @@ export default function EditDish({
         <DialogHeader>
           <DialogTitle>Cập nhật món ăn</DialogTitle>
           <DialogDescription>
-            Các trường sau đây là bắ buộc: Tên, ảnh
+            Các trường sau đây là bắ buộc: Tên, ảnh, danh mục
           </DialogDescription>
         </DialogHeader>
+
         <Form {...form}>
           <form
             noValidate
@@ -153,141 +180,197 @@ export default function EditDish({
             id="edit-dish-form"
             onSubmit={form.handleSubmit(onSubmit)}
           >
-            <div className="grid gap-4 py-4">
-              <FormField
-                control={form.control}
-                name="image"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex gap-2 items-start justify-start">
-                      <Avatar className="aspect-square w-25 h-25 rounded-md object-cover">
-                        <AvatarImage src={previewAvatarFromFile} />
-                        <AvatarFallback className="rounded-none">
-                          {name || "Avatar"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        ref={imageInputRef}
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            setFile(file);
-                            field.onChange(
-                              "http://localhost:3000/" + file.name,
-                            );
-                          }
-                        }}
-                        className="hidden"
-                      />
-                      <button
-                        className="flex aspect-square w-25 items-center justify-center rounded-md border border-dashed"
-                        type="button"
-                        onClick={() => imageInputRef.current?.click()}
-                      >
-                        <Upload className="h-4 w-4 text-muted-foreground" />
-                        <span className="sr-only">Upload</span>
-                      </button>
-                      <FormMessage />
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="name">Tên món ăn</Label>
-                      <div className="col-span-3 w-full space-y-2">
-                        <Input id="name" className="w-full" {...field} />
-                        <FormMessage />
-                      </div>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="price">Giá</Label>
-                      <div className="col-span-3 w-full space-y-2">
-                        <Input
-                          id="price"
-                          type="number"
-                          className="w-full"
-                          value={field.value ?? 0}
+            {form.watch("status") === undefined ||
+            form.watch("category_id") === undefined ? (
+              <div className="flex justify-center items-center">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <div className="grid gap-4 py-4">
+                <FormField
+                  control={form.control}
+                  name="image"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex gap-2 items-start justify-start">
+                        <Avatar className="aspect-square w-25 h-25 rounded-md object-cover">
+                          <AvatarImage src={previewAvatarFromFile} />
+                          <AvatarFallback className="rounded-none">
+                            {name || "Avatar"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          ref={imageInputRef}
                           onChange={(e) => {
-                            const value = e.target.valueAsNumber;
-                            field.onChange(isNaN(value) ? "" : value);
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setFile(file);
+                              field.onChange(
+                                "http://localhost:3000/" + file.name,
+                              );
+                            }
                           }}
+                          className="hidden"
                         />
-                        <FormMessage />
-                      </div>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="description">Mô tả sản phẩm</Label>
-                      <div className="col-span-3 w-full space-y-2">
-                        <Textarea
-                          id="description"
-                          className="w-full"
-                          {...field}
-                        />
-                        <FormMessage />
-                      </div>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="description">Trạng thái</Label>
-                      <div className="col-span-3 w-full space-y-2">
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
+                        <button
+                          className="flex aspect-square w-25 items-center justify-center rounded-md border border-dashed"
+                          type="button"
+                          onClick={() => imageInputRef.current?.click()}
                         >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Chọn trạng thái" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {DishStatusValues.map((status) => (
-                              <SelectItem key={status} value={status}>
-                                {getVietnameseDishStatus(status)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          <Upload className="h-4 w-4 text-muted-foreground" />
+                          <span className="sr-only">Upload</span>
+                        </button>
+                        <FormMessage />
                       </div>
+                    </FormItem>
+                  )}
+                />
 
-                      <FormMessage />
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="grid grid-cols-4 items-center justify-items-start gap-4">
+                        <Label htmlFor="name">Tên món ăn</Label>
+                        <div className="col-span-3 w-full space-y-2">
+                          <Input id="name" className="w-full" {...field} />
+                          <FormMessage />
+                        </div>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="category_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="grid grid-cols-4 items-center justify-items-start gap-4">
+                        <Label htmlFor="category_id">Danh mục</Label>
+                        <div className="col-span-3 w-full space-y-2">
+                          <Select
+                            value={field.value ? String(field.value) : ""}
+                            onValueChange={(value) =>
+                              field.onChange(Number(value))
+                            }
+                          >
+                            <FormControl>
+                              <SelectTrigger id="category_id">
+                                <SelectValue placeholder="Chọn danh mục" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {categoryOptions.length > 0 ? (
+                                categoryOptions.map((option) => (
+                                  <SelectItem
+                                    key={option.id}
+                                    value={String(option.id)}
+                                  >
+                                    {option.label}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="0" disabled>
+                                  Chưa có danh mục
+                                </SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </div>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="grid grid-cols-4 items-center justify-items-start gap-4">
+                        <Label htmlFor="price">Giá</Label>
+                        <div className="col-span-3 w-full space-y-2">
+                          <Input
+                            id="price"
+                            type="number"
+                            className="w-full"
+                            value={field.value ?? 0}
+                            onChange={(e) => {
+                              const value = e.target.valueAsNumber;
+                              field.onChange(isNaN(value) ? "" : value);
+                            }}
+                          />
+                          <FormMessage />
+                        </div>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="grid grid-cols-4 items-center justify-items-start gap-4">
+                        <Label htmlFor="description">Mô tả sản phẩm</Label>
+                        <div className="col-span-3 w-full space-y-2">
+                          <Textarea
+                            id="description"
+                            className="w-full"
+                            {...field}
+                          />
+                          <FormMessage />
+                        </div>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="grid grid-cols-4 items-center justify-items-start gap-4">
+                        <Label htmlFor="description">Trạng thái</Label>
+                        <div className="col-span-3 w-full space-y-2">
+                          {field.value === undefined ? (
+                            <div className="flex justify-center items-center">
+                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                            </div>
+                          ) : (
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Chọn trạng thái" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {DishStatusValues.map((status) => (
+                                  <SelectItem key={status} value={status}>
+                                    {getVietnameseDishStatus(status)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </div>
+
+                        <FormMessage />
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
           </form>
         </Form>
+
         <DialogFooter>
           <Button type="submit" form="edit-dish-form">
             Lưu

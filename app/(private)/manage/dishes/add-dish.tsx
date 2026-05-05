@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusCircle, Upload } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   Form,
@@ -22,7 +22,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getVietnameseDishStatus, handleErrorApi } from "@/lib/utils";
+import {
+  flattenCategoryTree,
+  getVietnameseDishStatus,
+  handleErrorApi,
+} from "@/lib/utils";
 import {
   CreateDishBody,
   CreateDishBodyType,
@@ -38,6 +42,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useAddDishMutation } from "@/queries/useDish";
 import { useUploadDishImageMutation } from "@/queries/useMedia";
+import { useGetCategoryTreeQuery } from "../../../../queries/useCategory";
 import { toast } from "sonner";
 
 export default function AddDish() {
@@ -45,6 +50,7 @@ export default function AddDish() {
   const [open, setOpen] = useState(false);
   const addDishMutation = useAddDishMutation();
   const uploadDishImageMutation = useUploadDishImageMutation();
+  const { data: categoryTreeData } = useGetCategoryTreeQuery();
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const form = useForm<CreateDishBodyType>({
     resolver: zodResolver(CreateDishBody),
@@ -53,6 +59,7 @@ export default function AddDish() {
       description: "",
       price: 0,
       image: undefined,
+      category_id: undefined,
       status: DishStatus.Unavailable,
     },
   });
@@ -64,6 +71,15 @@ export default function AddDish() {
     }
     return image;
   }, [file, image]);
+  const categoryOptions = useMemo(
+    () => flattenCategoryTree(categoryTreeData?.payload.data ?? []),
+    [categoryTreeData],
+  );
+  useEffect(() => {
+    if (!form.getValues("category_id") && categoryOptions.length > 0) {
+      form.setValue("category_id", categoryOptions[0].id);
+    }
+  }, [categoryOptions, form]);
   const reset = () => {
     form.reset();
     setFile(null);
@@ -175,6 +191,48 @@ export default function AddDish() {
                       <Label htmlFor="name">Tên món ăn</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Input id="name" className="w-full" {...field} />
+                        <FormMessage />
+                      </div>
+                    </div>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="category_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="grid grid-cols-4 items-center justify-items-start gap-4">
+                      <Label htmlFor="category_id">Danh mục</Label>
+                      <div className="col-span-3 w-full space-y-2">
+                        <Select
+                          value={field.value ? String(field.value) : ""}
+                          onValueChange={(value) =>
+                            field.onChange(Number(value))
+                          }
+                        >
+                          <FormControl>
+                            <SelectTrigger id="category_id">
+                              <SelectValue placeholder="Chọn danh mục" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {categoryOptions.length > 0 ? (
+                              categoryOptions.map((option) => (
+                                <SelectItem
+                                  key={option.id}
+                                  value={String(option.id)}
+                                >
+                                  {option.label}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="0" disabled>
+                                Chưa có danh mục
+                              </SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </div>
                     </div>

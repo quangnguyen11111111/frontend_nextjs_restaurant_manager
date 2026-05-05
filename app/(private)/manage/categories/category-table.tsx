@@ -32,103 +32,73 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { createContext, useContext, useEffect, useState } from "react";
-import { formatCurrency, getVietnameseDishStatus } from "@/lib/utils";
+import { createContext, useContext, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import AutoPagination from "@/components/share/auto-pagination";
-import { DishListResType } from "@/schemaValidations/dish.schema";
-import EditDish from "./edit-dish";
-import AddDish from "./add-dish";
-import { AlertDialogDeleteDish } from "@/components/share/manage/dishes/AlertDialogDeleteDish";
-import { useGetDishListQuery } from "@/queries/useDish";
+import { CategoryListResType } from "@/schemaValidations/category.schema";
+import EditCategory from "./edit-category";
+import AddCategory from "./add-category";
+import { AlertDialogDeleteCategory } from "@/components/share/manage/categories/AlertDialogDeleteCategory";
+import { useGetCategoryListQuery } from "@/queries/useCategory";
+import { getVietnameseCategoryStatus } from "@/lib/utils";
 
-type DishItem = DishListResType["data"][0];
+type CategoryItem = CategoryListResType["data"][0];
 
-const DishTableContext = createContext<{
-  setDishIdEdit: (value: number) => void;
-  dishIdEdit: number | undefined;
-  dishDelete: DishItem | null;
-  setDishDelete: (value: DishItem | null) => void;
+const CategoryTableContext = createContext<{
+  setCategoryIdEdit: (value: number | undefined) => void;
+  categoryIdEdit: number | undefined;
+  categoryDelete: CategoryItem | null;
+  setCategoryDelete: (value: CategoryItem | null) => void;
 }>({
-  setDishIdEdit: (value: number | undefined) => {},
-  dishIdEdit: undefined,
-  dishDelete: null,
-  setDishDelete: (value: DishItem | null) => {},
+  setCategoryIdEdit: (value: number | undefined) => {},
+  categoryIdEdit: undefined,
+  categoryDelete: null,
+  setCategoryDelete: (value: CategoryItem | null) => {},
 });
 
-export const columns: ColumnDef<DishItem>[] = [
+export const columns: ColumnDef<CategoryItem>[] = [
   {
     accessorKey: "id",
     header: "ID",
   },
   {
-    accessorKey: "image",
-    header: "Ảnh",
-    cell: ({ row }) => (
-      <div>
-        <Avatar className="aspect-square w-25 h-25 rounded-md object-cover">
-          <AvatarImage src={row.getValue("image")} />
-          <AvatarFallback className="rounded-none">
-            {row.original.name}
-          </AvatarFallback>
-        </Avatar>
-      </div>
-    ),
-  },
-  {
     accessorKey: "name",
-    header: "Tên",
+    header: "Ten",
     cell: ({ row }) => <div className="capitalize">{row.getValue("name")}</div>,
   },
   {
-    accessorKey: "category",
-    header: "Danh mục",
-    cell: ({ row }) => {
-      const categoryName = row.original.category?.name;
-      const categoryId = row.original.category_id;
-      return (
-        <div className="capitalize">
-          {categoryName ?? (categoryId ? String(categoryId) : "-")}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "price",
-    header: "Giá cả",
+    accessorKey: "parent_id",
+    header: "Danh muc cha",
     cell: ({ row }) => (
-      <div className="capitalize">{formatCurrency(row.getValue("price"))}</div>
-    ),
-  },
-  {
-    accessorKey: "description",
-    header: "Mô tả",
-    cell: ({ row }) => (
-      <div
-        dangerouslySetInnerHTML={{ __html: row.getValue("description") }}
-        className="whitespace-pre-line"
-      />
+      <div>{(row.getValue("parent_id") as number | null) ?? "-"}</div>
     ),
   },
   {
     accessorKey: "status",
-    header: "Trạng thái",
+    header: "Trang thai",
     cell: ({ row }) => (
-      <div>{getVietnameseDishStatus(row.getValue("status"))}</div>
+      <div>{getVietnameseCategoryStatus(row.getValue("status"))}</div>
+    ),
+  },
+  {
+    accessorKey: "order",
+    header: "Thu tu",
+    cell: ({ row }) => (
+      <div>{(row.getValue("order") as number | null) ?? "-"}</div>
     ),
   },
   {
     id: "actions",
     enableHiding: false,
     cell: function Actions({ row }) {
-      const { setDishIdEdit, setDishDelete } = useContext(DishTableContext);
-      const openEditDish = () => {
-        setDishIdEdit(row.original.id);
+      const { setCategoryIdEdit, setCategoryDelete } =
+        useContext(CategoryTableContext);
+      const openEditCategory = () => {
+        setCategoryIdEdit(row.original.id);
       };
 
-      const openDeleteDish = () => {
-        setDishDelete(row.original);
+      const openDeleteCategory = () => {
+        setCategoryDelete(row.original);
       };
       return (
         <DropdownMenu modal={false}>
@@ -141,8 +111,10 @@ export const columns: ColumnDef<DishItem>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={openEditDish}>Sửa</DropdownMenuItem>
-            <DropdownMenuItem onClick={openDeleteDish}>Xóa</DropdownMenuItem>
+            <DropdownMenuItem onClick={openEditCategory}>Sua</DropdownMenuItem>
+            <DropdownMenuItem onClick={openDeleteCategory}>
+              Xoa
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );
@@ -150,15 +122,18 @@ export const columns: ColumnDef<DishItem>[] = [
   },
 ];
 
-export default function DishTable() {
+export default function CategoryTable() {
   const searchParam = useSearchParams();
   const page = searchParam.get("page") ? Number(searchParam.get("page")) : 1;
   const currentPage = Number.isFinite(page) && page > 0 ? page : 1;
-  const [dishIdEdit, setDishIdEdit] = useState<number | undefined>();
-  const [dishDelete, setDishDelete] = useState<DishItem | null>(null);
-  const { data: dishListData, isPending } = useGetDishListQuery(currentPage);
-  const data = dishListData?.payload.data ?? [];
-  const paginationMeta = dishListData?.payload.pagination;
+  const [categoryIdEdit, setCategoryIdEdit] = useState<number | undefined>();
+  const [categoryDelete, setCategoryDelete] = useState<CategoryItem | null>(
+    null,
+  );
+  const { data: categoryListData, isPending } =
+    useGetCategoryListQuery(currentPage);
+  const data = categoryListData?.payload.data ?? [];
+  const paginationMeta = categoryListData?.payload.pagination;
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -187,18 +162,23 @@ export default function DishTable() {
   });
 
   return (
-    <DishTableContext.Provider
-      value={{ dishIdEdit, setDishIdEdit, dishDelete, setDishDelete }}
+    <CategoryTableContext.Provider
+      value={{
+        categoryIdEdit,
+        setCategoryIdEdit,
+        categoryDelete,
+        setCategoryDelete,
+      }}
     >
       <div className="w-full">
-        <EditDish id={dishIdEdit} setId={setDishIdEdit} />
-        <AlertDialogDeleteDish
-          dishDelete={dishDelete}
-          setDishDelete={setDishDelete}
+        <EditCategory id={categoryIdEdit} setId={setCategoryIdEdit} />
+        <AlertDialogDeleteCategory
+          categoryDelete={categoryDelete}
+          setCategoryDelete={setCategoryDelete}
         />
         <div className="flex items-center py-4">
           <Input
-            placeholder="Lọc tên"
+            placeholder="Loc ten"
             value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
               table.getColumn("name")?.setFilterValue(event.target.value)
@@ -206,7 +186,7 @@ export default function DishTable() {
             className="max-w-sm"
           />
           <div className="ml-auto flex items-center gap-2">
-            <AddDish />
+            <AddCategory />
           </div>
         </div>
         <div className="rounded-md border">
@@ -272,18 +252,18 @@ export default function DishTable() {
         </div>
         <div className="flex items-center justify-end space-x-2 py-4">
           <div className="text-xs text-muted-foreground py-4 flex-1 ">
-            Hiển thị <strong>{data.length}</strong> trong{" "}
-            <strong>{paginationMeta?.totalItems ?? 0}</strong> kết quả
+            Hien thi <strong>{data.length}</strong> trong{" "}
+            <strong>{paginationMeta?.totalItems ?? 0}</strong> ket qua
           </div>
           <div>
             <AutoPagination
               page={paginationMeta?.page ?? currentPage}
               pageSize={Math.max(paginationMeta?.totalPages ?? 1, 1)}
-              pathname="/manage/dishes"
+              pathname="/manage/categories"
             />
           </div>
         </div>
       </div>
-    </DishTableContext.Provider>
+    </CategoryTableContext.Provider>
   );
 }

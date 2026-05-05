@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 export const useGetDishListQuery = (page: number) => {
   return useQuery({
     queryKey: ["dish-list", page],
-    queryFn: () => dishApiRequest.list(page),
+    queryFn: () => dishApiRequest.listForAdmin(page),
   });
 };
 

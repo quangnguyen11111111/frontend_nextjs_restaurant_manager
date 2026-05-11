@@ -10,8 +10,15 @@ export const CategoryFlatSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
+export type CategoryTree = {
+  id: number;
+  name: string;
+  status?: (typeof CategoryStatusValues)[number] | null;
+  children?: CategoryTree[];
+  parant_id?: number | null;
+};
 
-export const CategoryTreeSchema = z.object({
+export const CategoryTreeSchema: z.ZodType<CategoryTree> = z.object({
   id: z.number(),
   name: z.string(),
   status: z.enum(CategoryStatusValues).nullable().optional(),

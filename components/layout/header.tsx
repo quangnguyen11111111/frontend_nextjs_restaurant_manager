@@ -11,49 +11,119 @@ import {
 } from "../ui/sheet";
 import { Button, buttonVariants } from "../ui/button";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { getAccessTokenFromLocalStorage } from "@/lib/utils";
+import { cn, handleErrorApi } from "@/lib/utils";
 import { useEffect, useState } from "react";
-const menuItems = [
+import { RoleType } from "@/types/jwt.types";
+import { Role } from "@/constants/type";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useTranslations } from "next-intl";
+import { useAppStore } from "../query-provider";
+import { useLogoutMutation } from "@/queries/useAuth";
+import { useRouter } from "next/navigation";
+const menuItems: {
+  title: string;
+  href: string;
+  role?: RoleType[];
+  hideWhenLogin?: boolean;
+}[] = [
   {
-    title: "Món ăn",
-    href: "/menu",
-    authRequired: false,
+    title: "home",
+    href: "/",
   },
   {
-    title: "Đơn hàng",
-    href: "/orders",
-    authRequired: true,
+    title: "menu",
+    href: "/guest/menu",
+    role: [Role.Guest],
   },
   {
-    title: "Đăng nhập",
+    title: "orders",
+    href: "/guest/orders",
+    role: [Role.Guest],
+  },
+  {
+    title: "login",
     href: "/login",
-    authRequired: false,
+    hideWhenLogin: true,
   },
   {
-    title: "Quản lý",
+    title: "manage",
     href: "/manage/dashboard",
-    authRequired: true,
+    role: [Role.Owner, Role.Employee],
   },
 ];
-
 function NavItems({ className }: { className?: string }) {
-  const [isAuth, setIsAuth] = useState<boolean>(false);
-  useEffect(() => {
-    setIsAuth(Boolean(getAccessTokenFromLocalStorage()));
-  }, []);
-  return menuItems.map((item) => {
-    if (
-      (!item.authRequired && isAuth) ||
-      (item.authRequired === true && !isAuth)
-    ) {
-      return null;
+  const t = useTranslations("NavItem");
+  const role = useAppStore((state) => state.role);
+  const setRole = useAppStore((state) => state.setRole);
+  const disconnectSocket = useAppStore((state) => state.disconnectSocket);
+  const logoutMutation = useLogoutMutation();
+  const router = useRouter();
+  const logout = async () => {
+    if (logoutMutation.isPending) return;
+    try {
+      await logoutMutation.mutateAsync();
+      setRole();
+      disconnectSocket();
+      router.push("/");
+    } catch (error: any) {
+      handleErrorApi({
+        error,
+      });
     }
-    return (
-      <Link href={item.href} key={item.href} className={className}>
-        {item.title}
-      </Link>
-    );
-  });
+  };
+  return (
+    <>
+      {menuItems.map((item) => {
+        // Trường hợp đăng nhập thì chỉ hiển thị menu đăng nhập
+        const isAuth = item.role && role && item.role.includes(role);
+        // Trường hợp menu item có thể hiển thị dù cho đã đăng nhập hay chưa
+        const canShow =
+          (item.role === undefined && !item.hideWhenLogin) ||
+          (!role && item.hideWhenLogin);
+        if (isAuth || canShow) {
+          return (
+            <Link href={item.href} key={item.href} className={className}>
+              {t(item.title as any)}
+            </Link>
+          );
+        }
+        return null;
+      })}
+      {role && (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <div className={cn(className, "cursor-pointer")}>{t("logout")}</div>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {t("logoutDialog.logoutQuestion")}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {t("logoutDialog.logoutConfirm")}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>
+                {t("logoutDialog.logoutCancel")}
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={logout}>OK</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+    </>
+  );
 }
 
 const Header = () => {

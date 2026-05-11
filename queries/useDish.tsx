@@ -8,7 +8,22 @@ export const useGetDishListQuery = (page: number) => {
     queryFn: () => dishApiRequest.listForAdmin(page),
   });
 };
-
+export const useGetDishListByCategoryQuery = ({
+  categoryId,
+  page,
+}: {
+  categoryId: number;
+  page: number;
+}) => {
+  return useQuery({
+    queryKey: ["dish-list-by-category", categoryId, page],
+    queryFn: async () => {
+      const res = await dishApiRequest.listByCategory(categoryId, page);
+      return res;
+    },
+    enabled: !!categoryId,
+  });
+};
 export const useGetDishDetailQuery = ({
   id,
   enabled,

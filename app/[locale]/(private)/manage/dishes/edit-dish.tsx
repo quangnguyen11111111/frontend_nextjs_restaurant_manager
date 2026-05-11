@@ -45,8 +45,9 @@ import {
   useUpdateDishMutation,
 } from "@/queries/useDish";
 import { useUploadDishImageMutation } from "@/queries/useMedia";
-import { useGetCategoryTreeQuery } from "../../../../queries/useCategory";
+
 import { toast } from "sonner";
+import { useGetCategoryTreeQuery } from "@/queries/useCategory";
 
 export default function EditDish({
   id,
@@ -269,7 +270,7 @@ export default function EditDish({
                                     key={option.id}
                                     value={String(option.id)}
                                   >
-                                    {option.label}
+                                    {option.name}
                                   </SelectItem>
                                 ))
                               ) : (

@@ -42,8 +42,9 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useAddDishMutation } from "@/queries/useDish";
 import { useUploadDishImageMutation } from "@/queries/useMedia";
-import { useGetCategoryTreeQuery } from "../../../../queries/useCategory";
+
 import { toast } from "sonner";
+import { useGetCategoryTreeQuery } from "@/queries/useCategory";
 
 export default function AddDish() {
   const [file, setFile] = useState<File | null>(null);
@@ -223,7 +224,7 @@ export default function AddDish() {
                                   key={option.id}
                                   value={String(option.id)}
                                 >
-                                  {option.label}
+                                  {option.name}
                                 </SelectItem>
                               ))
                             ) : (

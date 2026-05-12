@@ -10,9 +10,14 @@ import {
   CategoryStatus,
   DishStatus,
   OrderStatus,
+  Role,
   TableStatus,
 } from "@/constants/type";
 import envConfig from "@/config";
+import { TokenPayload } from "@/types/jwt.types";
+import { jwtDecode } from "jwt-decode";
+import { io } from "socket.io-client";
+import guestApiRequest from "@/apiRequest/guest";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -55,53 +60,52 @@ export const setAccessTokenToLocalStorage = (token: string) =>
 export const setRefreshTokenToLocalStorage = (token: string) =>
   isBrowser && localStorage.setItem("refreshToken", token);
 
+export const removeTokensFromLocalStorage = () => {
+  isBrowser && localStorage.removeItem("accessToken");
+  isBrowser && localStorage.removeItem("refreshToken");
+};
+
 export const checkAndRefreshToken = async (param?: {
   onError?: () => void;
   onSuccess?: () => void;
+  force?: boolean;
 }) => {
+  // Không nên đưa logic lấy access và refresh token ra khỏi cái function `checkAndRefreshToken`
+  // Vì để mỗi lần mà checkAndRefreshToken() được gọi thì chúng ta se có một access và refresh token mới
+  // Tránh hiện tượng bug nó lấy access và refresh token cũ ở lần đầu rồi gọi cho các lần tiếp theo
   const accessToken = getAccessTokenFromLocalStorage();
   const refreshToken = getRefreshTokenFromLocalStorage();
-  // Nếu không có accessToken hoặc refreshToken, không thực hiện gì (chua đăng nhập hoặc đã đăng xuất)
+  // Chưa đăng nhập thì cũng không cho chạy
   if (!accessToken || !refreshToken) return;
-  let decodedAccessToken: any;
-  let decodedRefreshToken: any;
-
-  try {
-    decodedAccessToken = jwt.decode(accessToken);
-    decodedRefreshToken = jwt.decode(refreshToken);
-
-    if (
-      !decodedAccessToken ||
-      !decodedRefreshToken ||
-      !decodedAccessToken.exp ||
-      !decodedRefreshToken.exp
-    ) {
-      // Nếu token không decode được thì token đã bị chỉnh sửa logout luôn
-      await authApiRequest.cLogout();
-      return redirect("/login");
-    }
-  } catch (error) {
-    // Nếu token không decode được thì token đã bị chỉnh sửa logout luôn
-    await authApiRequest.cLogout();
-    return redirect("/login");
+  const decodedAccessToken = decodeToken(accessToken);
+  const decodedRefreshToken = decodeToken(refreshToken);
+  // Thời điểm hết hạn của token là tính theo epoch time (s)
+  // Còn khi các bạn dùng cú pháp new Date().getTime() thì nó sẽ trả về epoch time (ms)
+  const now = Math.round(new Date().getTime() / 1000);
+  // trường hợp refresh token hết hạn thì cho logout
+  if (decodedRefreshToken.exp <= now) {
+    removeTokensFromLocalStorage();
+    return param?.onError && param.onError();
   }
-  const now = new Date().getTime() / 1000 - 1; // Lấy thời gian hiện tại (đơn vị giây) trừ đi 1 giây để tránh trường hợp token vừa hết hạn
-  // Nếu refreshToken đã hết hạn thif đăng xuất luôn
-  if (decodedRefreshToken.exp < now) {
-    await authApiRequest.cLogout();
-    return redirect("/login");
-  }
+  // Ví dụ access token của chúng ta có thời gian hết hạn là 10s
+  // thì mình sẽ kiểm tra còn 1/3 thời gian (3s) thì mình sẽ cho refresh token lại
+  // Thời gian còn lại sẽ tính dựa trên công thức: decodedAccessToken.exp - now
+  // Thời gian hết hạn của access token dựa trên công thức: decodedAccessToken.exp - decodedAccessToken.iat
   if (
+    param?.force ||
     decodedAccessToken.exp - now <
-    (decodedAccessToken.exp - decodedAccessToken.iat) / 3
+      (decodedAccessToken.exp - decodedAccessToken.iat) / 3
   ) {
+    // Gọi API refresh token
     try {
-      const res = await authApiRequest.cRefreshToken();
+      const role = decodedRefreshToken.role;
+      const res =
+        role === Role.Guest
+          ? await guestApiRequest.refreshToken()
+          : await authApiRequest.cRefreshToken();
       setAccessTokenToLocalStorage(res.payload.data.accessToken);
       setRefreshTokenToLocalStorage(res.payload.data.refreshToken);
-      setTimeout(() => {
-        param?.onSuccess && param.onSuccess();
-      }, 1000);
+      param?.onSuccess && param.onSuccess();
     } catch (error) {
       param?.onError && param.onError();
     }
@@ -174,6 +178,7 @@ export const getVietnameseTableStatus = (
 type CategoryTreeNode = {
   id: number;
   name: string;
+  parent_id?: number | null;
   children?: CategoryTreeNode[];
 };
 
@@ -181,10 +186,14 @@ export const flattenCategoryTree = (
   categories: CategoryTreeNode[],
   prefix = "",
 ) => {
-  const result: { id: number; label: string }[] = [];
+  const result: { id: number; name: string; parent_id: number | null }[] = [];
 
   categories.forEach((category) => {
-    result.push({ id: category.id, label: `${prefix}${category.name}` });
+    result.push({
+      id: category.id,
+      name: `${prefix}${category.name}`,
+      parent_id: category.parent_id ?? null,
+    });
     if (category.children && category.children.length > 0) {
       result.push(...flattenCategoryTree(category.children, `${prefix}-- `));
     }
@@ -203,4 +212,16 @@ export const getTableLink = ({
   return (
     envConfig.NEXT_PUBLIC_URL + "/tables/" + tableNumber + "?token=" + token
   );
+};
+
+export const decodeToken = (token: string) => {
+  return jwtDecode(token) as TokenPayload;
+};
+
+export const generateSocketInstace = (accessToken: string) => {
+  return io(envConfig.NEXT_PUBLIC_SOCKET_ENDPOINT, {
+    auth: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 };

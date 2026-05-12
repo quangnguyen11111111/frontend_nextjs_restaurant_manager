@@ -149,7 +149,7 @@ export default function AddCategory() {
                                 key={option.id}
                                 value={String(option.id)}
                               >
-                                {option.label}
+                                {option.name}
                               </SelectItem>
                             ))}
                           </SelectContent>

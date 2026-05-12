@@ -11,7 +11,10 @@ import {
 const categoryApiRequest = {
   listAdmin: (page: number) =>
     http.get<CategoryListResType>(`/api/admin/categories?page=${page}`),
-  listTree: () => http.get<CategoryTreeResType>("/api/categories"),
+  listTree: (listtree: boolean) =>
+    http.get<CategoryTreeResType>(
+      `/api/categories?listtree=${listtree ? 1 : 0}`,
+    ),
   getDetail: (id: number) => http.get<CategoryResType>(`/api/categories/${id}`),
   add: (body: CreateCategoryBodyType) =>
     http.post<CategoryResType>("/api/admin/categories", body),

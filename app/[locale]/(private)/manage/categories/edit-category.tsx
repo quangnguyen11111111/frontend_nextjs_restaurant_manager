@@ -180,7 +180,7 @@ export default function EditCategory({
                                   key={option.id}
                                   value={String(option.id)}
                                 >
-                                  {option.label}
+                                  {option.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>

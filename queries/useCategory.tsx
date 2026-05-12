@@ -12,7 +12,7 @@ export const useGetCategoryListQuery = (page: number) => {
 export const useGetCategoryTreeQuery = () => {
   return useQuery({
     queryKey: ["category-tree"],
-    queryFn: () => categoryApiRequest.listTree(),
+    queryFn: () => categoryApiRequest.listTree(true),
   });
 };
 

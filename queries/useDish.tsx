@@ -21,7 +21,7 @@ export const useGetDishListByCategoryQuery = ({
       const res = await dishApiRequest.listByCategory(categoryId, page);
       return res;
     },
-    enabled: !!categoryId,
+    enabled: typeof categoryId === "number",
   });
 };
 export const useGetDishDetailQuery = ({

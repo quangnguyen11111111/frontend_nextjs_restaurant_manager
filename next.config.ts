@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "via.placeholder.com",
+        hostname: "upload-images-2026.s3.ap-southeast-1.amazonaws.com",
       },
     ],
   },

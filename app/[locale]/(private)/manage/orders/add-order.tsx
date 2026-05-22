@@ -21,12 +21,20 @@ import { DishStatus } from '@/constants/type'
 import { DishListResType } from '@/schemaValidations/dish.schema'
 import Quantity from '@/app/[locale]/(public)/(guest)/guest/menu/quantity'
 
+import { useGetDishListQuery } from '@/queries/useDish'
+import { useCreateOrderMutation } from '@/queries/useOrder'
+import { handleErrorApi } from '@/lib/utils'
+
 export default function AddOrder() {
   const [open, setOpen] = useState(false)
   const [selectedGuest, setSelectedGuest] = useState<GetListGuestsResType['data'][0] | null>(null)
   const [isNewGuest, setIsNewGuest] = useState(true)
   const [orders, setOrders] = useState<CreateOrdersBodyType['orders']>([])
-  const dishes: DishListResType['data'] = []
+  
+  const { data: dishesData } = useGetDishListQuery(1)
+  const dishes = dishesData?.payload.data ?? []
+  
+  const createOrderMutation = useCreateOrderMutation()
 
   const totalPrice = useMemo(() => {
     return dishes.reduce((result, dish) => {
@@ -61,7 +69,33 @@ export default function AddOrder() {
     })
   }
 
-  const handleOrder = async () => {}
+  const handleOrder = async () => {
+    try {
+      let guestId = selectedGuest?.id
+      if (isNewGuest) {
+        // Admin must select an existing guest in this architecture
+        // Because "New Guest" means creating a guest without QR code, which requires an admin-create-guest API.
+        // For now, if it's new guest, we can't proceed without a guestId
+        alert("Vui lòng chọn khách hàng đã quét mã QR hoặc đã được cấp Guest Token (chuyển sang tab Khách đã chọn).")
+        return
+      }
+
+      if (!guestId) {
+        alert("Vui lòng chọn khách hàng")
+        return
+      }
+
+      await createOrderMutation.mutateAsync({
+        guestId: guestId,
+        orders: orders
+      })
+      
+      setOpen(false)
+      setOrders([])
+    } catch (error) {
+      handleErrorApi({ error })
+    }
+  }
 
   return (
     <Dialog onOpenChange={setOpen} open={open}>

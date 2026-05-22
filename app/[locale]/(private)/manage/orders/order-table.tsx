@@ -1,4 +1,5 @@
 "use client";
+import React, { createContext, useEffect, useMemo, useState } from "react";
 import {
   ColumnFiltersState,
   SortingState,
@@ -8,6 +9,7 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  getExpandedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import { Input } from "@/components/ui/input";
@@ -21,16 +23,16 @@ import {
 } from "@/components/ui/table";
 import {
   GetOrdersResType,
-  PayGuestOrdersResType,
-  UpdateOrderResType,
+  PayGuestOrdersResType
 } from "@/schemaValidations/order.schema";
-import AddOrder from "./add-order";
 import EditOrder from "./edit-order";
-import { createContext, useEffect, useMemo, useState } from "react";
+import AddOrder from "./add-order";
 import { useSearchParams } from "next/navigation";
 import AutoPagination from "@/components/share/auto-pagination";
-import { getVietnameseOrderStatus, handleErrorApi } from "@/lib/utils";
-import { OrderStatusValues } from "@/constants/type";
+import { formatCurrency, handleErrorApi, getVietnameseOrderStatus } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAppStore } from "@/components/query-provider";
+import { OrderStatusValues, SessionStatusValues } from "@/constants/type";
 import OrderStatics from "./order-statics";
 import orderTableColumns from "./order-table-columns";
 import { useOrderService } from "./order.service";
@@ -44,13 +46,14 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { useTranslations } from "next-intl";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { endOfDay, format, startOfDay } from "date-fns";
-import { useGetOrderListQuery } from "@/queries/useOrder";
+import { useGetOrderListQuery, useUpdateSessionStatusMutation } from "@/queries/useOrder";
 import { useListTableQuery } from "@/queries/useTable";
 // import TableSkeleton from '@/app/manage/orders/table-skeleton'
 // import { toast } from '@/components/ui/use-toast'
@@ -62,14 +65,14 @@ export const OrderTableContext = createContext({
   changeStatus: (payload: {
     orderId: number;
     dishId: number;
-    status: (typeof OrderStatusValues)[number];
+    status: (typeof OrderStatusValues)[number] | (typeof SessionStatusValues)[number];
     quantity: number;
   }) => {},
   orderObjectByGuestId: {} as OrderObjectByGuestID,
 });
 
 export type StatusCountObject = Record<
-  (typeof OrderStatusValues)[number],
+  (typeof SessionStatusValues)[number],
   number
 >;
 export type Statics = {
@@ -84,9 +87,14 @@ const initFromDate = startOfDay(new Date());
 const initToDate = endOfDay(new Date());
 export default function OrderTable() {
   const searchParam = useSearchParams();
+  const t = useTranslations("SessionStatus");
+  const tOrderStatus = useTranslations("OrderStatus");
+  const socket = useAppStore((state) => state.socket);
+  const queryClient = useQueryClient();
   const [openStatusFilter, setOpenStatusFilter] = useState(false);
   const [fromDate, setFromDate] = useState(initFromDate);
   const [toDate, setToDate] = useState(initToDate);
+  const [selectedOrderDetail, setSelectedOrderDetail] = useState<any>(null);
   const page = searchParam.get("page") ? Number(searchParam.get("page")) : 1;
   const pageIndex = page - 1;
   const [orderIdEdit, setOrderIdEdit] = useState<number | undefined>();
@@ -111,13 +119,43 @@ export default function OrderTable() {
 
   const { statics, orderObjectByGuestId, servingGuestByTableNumber } =
     useOrderService(orderList);
+  const updateSessionMutation = useUpdateSessionStatusMutation();
 
   const changeStatus = async (body: {
     orderId: number;
     dishId: number;
-    status: (typeof OrderStatusValues)[number];
+    status: (typeof OrderStatusValues)[number] | (typeof SessionStatusValues)[number];
     quantity: number;
-  }) => {};
+  }) => {
+    try {
+      await updateSessionMutation.mutateAsync({
+        orderId: body.orderId,
+        status: body.status,
+      });
+    } catch (error) {
+      handleErrorApi({ error });
+    }
+  };
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const onRefetch = () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    };
+
+    socket.on("update-order", onRefetch);
+    socket.on("new-order", onRefetch);
+    socket.on("payment", onRefetch);
+
+    return () => {
+      socket.off("update-order", onRefetch);
+      socket.off("new-order", onRefetch);
+      socket.off("payment", onRefetch);
+    };
+  }, [socket, queryClient]);
+
+  const [expanded, setExpanded] = useState({});
 
   const table = useReactTable({
     data: orderList,
@@ -128,16 +166,20 @@ export default function OrderTable() {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+    onExpandedChange: setExpanded,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onPaginationChange: setPagination,
     autoResetPageIndex: false,
+    getRowCanExpand: () => true,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
       pagination,
+      expanded,
     },
   });
 
@@ -163,11 +205,6 @@ export default function OrderTable() {
       }}
     >
       <div className="w-full">
-        <EditOrder
-          id={orderIdEdit}
-          setId={setOrderIdEdit}
-          onSubmitSuccess={() => {}}
-        />
         <div className=" flex items-center">
           <div className="flex flex-wrap gap-2">
             <div className="flex items-center">
@@ -227,11 +264,7 @@ export default function OrderTable() {
                 className="w-[150px] text-sm justify-between"
               >
                 {table.getColumn("status")?.getFilterValue()
-                  ? getVietnameseOrderStatus(
-                      table
-                        .getColumn("status")
-                        ?.getFilterValue() as (typeof OrderStatusValues)[number],
-                    )
+                  ? t(table.getColumn("status")?.getFilterValue() as any)
                   : "Trạng thái"}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
@@ -240,34 +273,37 @@ export default function OrderTable() {
               <Command>
                 <CommandGroup>
                   <CommandList>
-                    {OrderStatusValues.map((status) => (
-                      <CommandItem
-                        key={status}
-                        value={status}
-                        onSelect={(currentValue) => {
-                          table
-                            .getColumn("status")
-                            ?.setFilterValue(
-                              currentValue ===
-                                table.getColumn("status")?.getFilterValue()
-                                ? ""
-                                : currentValue,
-                            );
-                          setOpenStatusFilter(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            table.getColumn("status")?.getFilterValue() ===
-                              status
-                              ? "opacity-100"
-                              : "opacity-0",
-                          )}
-                        />
-                        {getVietnameseOrderStatus(status)}
-                      </CommandItem>
-                    ))}
+                    {SessionStatusValues.map((status) => {
+                      const isSelected = table.getColumn("status")?.getFilterValue() === status;
+                      return (
+                        <CommandItem
+                          key={status}
+                          value={status}
+                          onSelect={(currentValue) => {
+                            table
+                              .getColumn("status")
+                              ?.setFilterValue(
+                                currentValue === table.getColumn("status")?.getFilterValue()
+                                  ? ""
+                                  : currentValue,
+                              );
+                            setOpenStatusFilter(false);
+                          }}
+                        >
+                          <div
+                            className={cn(
+                              "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                              isSelected
+                                ? "bg-primary text-primary-foreground"
+                                : "opacity-50 [&_svg]:invisible",
+                            )}
+                          >
+                            <Check className={cn("h-4 w-4")} />
+                          </div>
+                          <span>{t(status as any)}</span>
+                        </CommandItem>
+                      );
+                    })}
                   </CommandList>
                 </CommandGroup>
               </Command>
@@ -303,19 +339,47 @@ export default function OrderTable() {
             <TableBody>
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
+                  <React.Fragment key={row.id}>
+                    <TableRow
+                      data-state={row.getIsSelected() && "selected"}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                    {row.getIsExpanded() && (
+                      <TableRow>
+                        <TableCell colSpan={row.getVisibleCells().length}>
+                          <div className="p-4 bg-muted/20 border rounded-md m-2 space-y-2">
+                            <h4 className="font-semibold mb-2">Chi Tiết Đơn Hàng (Order #{row.original.id})</h4>
+                            {(row.original.order_details || []).length === 0 && (
+                              <p className="text-sm text-muted-foreground">Không có món ăn nào trong đơn này.</p>
+                            )}
+                            {(row.original.order_details || []).map(detail => (
+                              <div key={detail.id} className="flex items-center gap-4 border-b pb-2 last:border-0 last:pb-0">
+                                {detail.dish_image && (
+                                  <img src={detail.dish_image} alt={detail.dish_name} className="w-10 h-10 object-cover rounded-md" />
+                                )}
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium">{detail.dish_name}</p>
+                                  <p className="text-xs text-muted-foreground">SL: {detail.quantity} - {tOrderStatus(detail.status as any)}</p>
+                                </div>
+                                <div className="text-sm font-semibold">{formatCurrency(detail.dish_price * detail.quantity)}</div>
+                                <div className="ml-auto">
+                                  <Button variant="ghost" size="sm" onClick={() => setSelectedOrderDetail(detail)}>Sửa</Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
                 ))
               ) : (
                 <TableRow>
@@ -345,6 +409,11 @@ export default function OrderTable() {
           </div>
         </div>
       </div>
+      <EditOrder
+        id={selectedOrderDetail?.id}
+        setId={() => setSelectedOrderDetail(null)}
+        orderDetail={selectedOrderDetail}
+      />
     </OrderTableContext.Provider>
   );
 }

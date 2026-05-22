@@ -1,9 +1,10 @@
 import { Fragment, useState } from 'react'
 import { Users } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
-import { OrderStatusIcon, cn, getVietnameseOrderStatus } from '@/lib/utils'
+import { OrderStatusIcon, cn } from '@/lib/utils'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { OrderStatus, OrderStatusValues } from '@/constants/type'
+import { OrderStatus, SessionStatus, SessionStatusValues } from '@/constants/type'
+import { useTranslations } from 'next-intl'
 import { TableListResType } from '@/schemaValidations/table.schema'
 import { Badge } from '@/components/ui/badge'
 import { ServingGuestByTableNumber, Statics, StatusCountObject } from './order-table'
@@ -49,6 +50,7 @@ export default function OrderStatics({
 }) {
   const [selectedTableNumber, setSelectedTableNumber] = useState<number>(0)
   const selectedServingGuest = servingGuestByTableNumber[selectedTableNumber]
+  const t = useTranslations('SessionStatus')
   return (
     <Fragment>
       <Dialog
@@ -71,7 +73,7 @@ export default function OrderStatics({
                 const orders = selectedServingGuest[Number(guestId)]
                 return (
                   <div key={guestId}>
-                    <OrderGuestDetail guest={orders[0].guest} orders={orders} />
+                    <OrderGuestDetail guest={orders[0].guest!} order={orders[0]} />
                     {index !== Object.keys(selectedServingGuest).length - 1 && <Separator className='my-5' />}
                   </div>
                 )
@@ -85,29 +87,27 @@ export default function OrderStatics({
           const tableStatics: Record<number, StatusCountObject> | undefined = statics.table[tableNumber]
           let isEmptyTable = true
           let countObject: StatusCountObject = {
-            Pending: 0,
-            Processing: 0,
-            Delivered: 0,
+            Pending_Arrival: 0,
+            Active: 0,
             Paid: 0,
-            Rejected: 0
+            Cancelled: 0
           }
           const servingGuestCount = Object.values(servingGuestByTableNumber[tableNumber] ?? []).length
           if (tableStatics) {
             for (const guestId in tableStatics) {
               const guestStatics = tableStatics[Number(guestId)]
               if (
-                [guestStatics.Pending, guestStatics.Processing, guestStatics.Delivered].some(
+                [guestStatics.Pending_Arrival, guestStatics.Active, guestStatics.Paid].some(
                   (status) => status !== 0 && status !== undefined
                 )
               ) {
                 isEmptyTable = false
               }
               countObject = {
-                Pending: countObject.Pending + (guestStatics.Pending ?? 0),
-                Processing: countObject.Processing + (guestStatics.Processing ?? 0),
-                Delivered: countObject.Delivered + (guestStatics.Delivered ?? 0),
+                Pending_Arrival: countObject.Pending_Arrival + (guestStatics.Pending_Arrival ?? 0),
+                Active: countObject.Active + (guestStatics.Active ?? 0),
                 Paid: countObject.Paid + (guestStatics.Paid ?? 0),
-                Rejected: countObject.Rejected + (guestStatics.Rejected ?? 0)
+                Cancelled: countObject.Cancelled + (guestStatics.Cancelled ?? 0)
               }
             }
           }
@@ -150,11 +150,11 @@ export default function OrderStatics({
                       <TooltipTrigger>
                         <div className='flex gap-2 items-center'>
                           <OrderStatusIcon.Pending className='w-4 h-4' />
-                          <span>{countObject[OrderStatus.Pending] ?? 0}</span>
+                          <span>{countObject[SessionStatus.Pending_Arrival] ?? 0}</span>
                         </div>
                       </TooltipTrigger>
                       <TooltipContent>
-                        {getVietnameseOrderStatus(OrderStatus.Pending)}: {countObject[OrderStatus.Pending] ?? 0} đơn
+                        {t(SessionStatus.Pending_Arrival)}: {countObject[SessionStatus.Pending_Arrival] ?? 0}
                       </TooltipContent>
                     </Tooltip>
 
@@ -162,23 +162,11 @@ export default function OrderStatics({
                       <TooltipTrigger>
                         <div className='flex gap-2 items-center'>
                           <OrderStatusIcon.Processing className='w-4 h-4' />
-                          <span>{countObject[OrderStatus.Processing] ?? 0}</span>
+                          <span>{countObject[SessionStatus.Active] ?? 0}</span>
                         </div>
                       </TooltipTrigger>
                       <TooltipContent>
-                        {getVietnameseOrderStatus(OrderStatus.Processing)}: {countObject[OrderStatus.Processing] ?? 0}{' '}
-                        đơn
-                      </TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <div className='flex gap-2 items-center'>
-                          <OrderStatusIcon.Delivered className='w-4 h-4' />
-                          <span>{countObject[OrderStatus.Delivered] ?? 0}</span>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {getVietnameseOrderStatus(OrderStatus.Delivered)}: {countObject[OrderStatus.Delivered] ?? 0} đơn
+                        {t(SessionStatus.Active)}: {countObject[SessionStatus.Active] ?? 0}{' '}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -189,9 +177,9 @@ export default function OrderStatics({
         })}
       </div>
       <div className='flex justify-start items-end gap-4 flex-wrap py-4'>
-        {OrderStatusValues.map((status) => (
+        {SessionStatusValues.map((status) => (
           <Badge variant='secondary' key={status}>
-            {getVietnameseOrderStatus(status)}: {statics.status[status] ?? 0}
+            {t(status)}: {statics.status[status] ?? 0}
           </Badge>
         ))}
       </div>

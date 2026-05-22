@@ -39,28 +39,42 @@ export const TableStatus = {
   Available: "Available",
   Hidden: "Hidden",
   Reserved: "Reserved",
+  Occupied: "Occupied",
 } as const;
 
 export const TableStatusValues = [
   TableStatus.Available,
   TableStatus.Hidden,
   TableStatus.Reserved,
+  TableStatus.Occupied,
+] as const;
+
+export const SessionStatus = {
+  Pending_Arrival: "Pending_Arrival",
+  Active: "Active",
+  Paid: "Paid",
+  Cancelled: "Cancelled",
+} as const;
+
+export const SessionStatusValues = [
+  SessionStatus.Pending_Arrival,
+  SessionStatus.Active,
+  SessionStatus.Paid,
+  SessionStatus.Cancelled,
 ] as const;
 
 export const OrderStatus = {
   Pending: "Pending",
   Processing: "Processing",
-  Rejected: "Rejected",
   Delivered: "Delivered",
-  Paid: "Paid",
+  Cancelled: "Cancelled",
 } as const;
 
 export const OrderStatusValues = [
   OrderStatus.Pending,
   OrderStatus.Processing,
-  OrderStatus.Rejected,
   OrderStatus.Delivered,
-  OrderStatus.Paid,
+  OrderStatus.Cancelled,
 ] as const;
 
 export const ManagerRoom = "manager" as const;

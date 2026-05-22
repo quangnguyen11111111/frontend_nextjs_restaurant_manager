@@ -10,6 +10,7 @@ import {
   DishStatus,
   OrderStatus,
   Role,
+  SessionStatus,
   TableStatus,
 } from "@/constants/type";
 import envConfig from "@/config";
@@ -152,14 +153,31 @@ export const getVietnameseOrderStatus = (
   switch (status) {
     case OrderStatus.Delivered:
       return "Đã phục vụ";
-    case OrderStatus.Paid:
-      return "Đã thanh toán";
     case OrderStatus.Pending:
       return "Chờ xử lý";
     case OrderStatus.Processing:
       return "Đang nấu";
+    case OrderStatus.Cancelled:
+      return "Hủy bỏ";
     default:
-      return "Từ chối";
+      return "Không xác định";
+  }
+};
+
+export const getVietnameseSessionStatus = (
+  status: (typeof SessionStatus)[keyof typeof SessionStatus],
+) => {
+  switch (status) {
+    case SessionStatus.Pending_Arrival:
+      return "Chờ nhận bàn";
+    case SessionStatus.Active:
+      return "Đang dùng bữa";
+    case SessionStatus.Paid:
+      return "Đã thanh toán";
+    case SessionStatus.Cancelled:
+      return "Đã hủy";
+    default:
+      return "Không xác định";
   }
 };
 
@@ -267,7 +285,6 @@ export const formatDateTimeToTimeString = (date: string | Date) => {
 export const OrderStatusIcon = {
   [OrderStatus.Pending]: Loader,
   [OrderStatus.Processing]: CookingPot,
-  [OrderStatus.Rejected]: BookX,
+  [OrderStatus.Cancelled]: BookX,
   [OrderStatus.Delivered]: Truck,
-  [OrderStatus.Paid]: HandCoins,
 };

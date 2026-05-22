@@ -4,20 +4,32 @@ import {
   GetOrderDetailResType,
   GetOrdersQueryParamsType,
   GetOrdersResType,
-  UpdateOrderBodyType,
-  UpdateOrderResType,
+  UpdateOrderDetailBodyType,
+  UpdateOrderDetailResType,
+  PayGuestOrdersBodyType,
+  PayGuestOrdersResType,
 } from "@/schemaValidations/order.schema";
 import queryString from "query-string";
 const orderApiRequest = {
-  getOrderList: (queryParam: GetOrdersQueryParamsType) =>
-    http.get<GetOrdersResType>(
-      "/api/orders?" + queryString.stringify(queryParam),
-    ),
+  getOrderList: (queryParam: GetOrdersQueryParamsType) => {
+    const query = {
+      ...queryParam,
+      fromDate: queryParam.fromDate?.toISOString(),
+      toDate: queryParam.toDate?.toISOString(),
+    };
+    return http.get<GetOrdersResType>(
+      "/api/orders?" + queryString.stringify(query),
+    );
+  },
   createOrder: (body: CreateOrdersBodyType) =>
     http.post<CreateOrdersBodyType>("/api/orders", body),
   getOrderDetail: (orderId: number) =>
     http.get<GetOrderDetailResType>(`/api/orders/${orderId}`),
-  updateOrder: (orderId: number, body: UpdateOrderBodyType) =>
-    http.put<UpdateOrderResType>(`/api/orders/${orderId}`, body),
+  updateOrderDetail: (orderDetailId: number, body: UpdateOrderDetailBodyType) =>
+    http.put<UpdateOrderDetailResType>(`/api/orders/${orderDetailId}`, body),
+  updateSessionStatus: (orderId: number, status: string) =>
+    http.put<any>(`/api/orders/session/${orderId}`, { status }),
+  pay: (body: PayGuestOrdersBodyType) =>
+    http.post<PayGuestOrdersResType>("/api/orders/pay", body),
 };
 export default orderApiRequest;

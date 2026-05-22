@@ -39,10 +39,13 @@ export default function GuestLoginForm() {
   async function onSubmit(values: GuestLoginBodyType) {
     if (loginMutation.isPending) return;
     try {
-      const result = await loginMutation.mutateAsync(values);
-      // setRole(result.payload.data.guest.role)
-      // setSocket(generateSocketInstace(result.payload.data.accessToken))
-      router.push("/guest/menu");
+      // const result = await loginMutation.mutateAsync(values);
+      const res = await loginMutation.mutateAsync(values);
+      
+      const payloadData = (res.payload as any)?.data;
+      const hasActiveSession = payloadData?.hasActiveSession;
+
+      router.push(`/guest/session?tableNumber=${tableNumber}&hasActiveSession=${hasActiveSession}`);
     } catch (error) {
       handleErrorApi({
         error,

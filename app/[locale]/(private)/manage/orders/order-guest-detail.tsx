@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { OrderStatus } from '@/constants/type'
+import { OrderStatus, SessionStatus } from '@/constants/type'
 import {
   OrderStatusIcon,
   formatCurrency,
@@ -10,15 +10,42 @@ import {
 } from '@/lib/utils'
 import { GetOrdersResType } from '@/schemaValidations/order.schema'
 import Image from 'next/image'
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
+import { usePayForGuestMutation } from '@/queries/useOrder'
+import { useTranslations } from 'next-intl'
+import { handleErrorApi } from '@/lib/utils'
+import EditOrder from './edit-order'
+import { useAppStore } from '@/components/query-provider'
 
-type Guest = GetOrdersResType['data'][0]['guest']
-type Orders = GetOrdersResType['data']
-export default function OrderGuestDetail({ guest, orders }: { guest: Guest; orders: Orders }) {
-  const ordersFilterToPurchase = guest
-    ? orders.filter((order) => order.status !== OrderStatus.Paid && order.status !== OrderStatus.Rejected)
+type Guest = NonNullable<GetOrdersResType['data'][0]['guest']>
+type Order = GetOrdersResType['data'][0]
+export default function OrderGuestDetail({ guest, order }: { guest: Guest; order: Order }) {
+  const t = useTranslations('OrderStatus')
+  const details = order.order_details || []
+  const payForGuestMutation = usePayForGuestMutation()
+  const socket = useAppStore(state => state.socket)
+  const [selectedOrderDetail, setSelectedOrderDetail] = useState<any>(null)
+  
+  const ordersFilterToPurchase = (guest && order.status !== SessionStatus.Paid)
+    ? details.filter((detail) => detail.status !== OrderStatus.Cancelled)
     : []
-  const purchasedOrderFilter = guest ? orders.filter((order) => order.status === OrderStatus.Paid) : []
+  const purchasedOrderFilter = (guest && order.status === SessionStatus.Paid) 
+    ? details.filter((detail) => detail.status !== OrderStatus.Cancelled) 
+    : []
+
+  const pay = async () => {
+    if (!guest) return
+    try {
+      const res = await payForGuestMutation.mutateAsync({ guestId: guest.id })
+      socket?.emit('payment', {
+        guestId: guest.id,
+        data: res.payload.data
+      })
+    } catch (error) {
+      handleErrorApi({ error })
+    }
+  }
+
   return (
     <div className='space-y-2 text-sm'>
       {guest && (
@@ -29,61 +56,71 @@ export default function OrderGuestDetail({ guest, orders }: { guest: Guest; orde
             <span className='font-semibold'>(#{guest.id})</span>
             <span>|</span>
             <span className='font-semibold'>Bàn:</span>
-            <span>{guest.tableNumber}</span>
+            <span>{order.table_number}</span>
           </div>
           <div className='space-x-1'>
             <span className='font-semibold'>Ngày đăng ký:</span>
-            <span>{formatDateTimeToLocaleString(guest.createdAt)}</span>
+            <span>{formatDateTimeToLocaleString(guest.created_at)}</span>
           </div>
         </Fragment>
       )}
 
       <div className='space-y-1'>
         <div className='font-semibold'>Đơn hàng:</div>
-        {orders.map((order, index) => {
+        {details.map((detail, index) => {
           return (
-            <div key={order.id} className='flex gap-2 items-center text-xs'>
+            <div key={detail.id} className='flex gap-2 items-center text-xs'>
               <span className='w-[10px]'>{index + 1}</span>
-              <span title={getVietnameseOrderStatus(order.status)}>
-                {order.status === OrderStatus.Pending && <OrderStatusIcon.Pending className='w-4 h-4' />}
-                {order.status === OrderStatus.Processing && <OrderStatusIcon.Processing className='w-4 h-4' />}
-                {order.status === OrderStatus.Rejected && <OrderStatusIcon.Rejected className='w-4 h-4 text-red-400' />}
-                {order.status === OrderStatus.Delivered && <OrderStatusIcon.Delivered className='w-4 h-4' />}
-                {order.status === OrderStatus.Paid && <OrderStatusIcon.Paid className='w-4 h-4 text-yellow-400' />}
+              <span title={t(detail.status as any)}>
+                {detail.status === OrderStatus.Pending && <OrderStatusIcon.Pending className='w-4 h-4' />}
+                {detail.status === OrderStatus.Processing && <OrderStatusIcon.Processing className='w-4 h-4' />}
+                {detail.status === OrderStatus.Cancelled && <OrderStatusIcon.Cancelled className='w-4 h-4 text-red-400' />}
+                {detail.status === OrderStatus.Delivered && <OrderStatusIcon.Delivered className='w-4 h-4' />}
               </span>
-              <Image
-                src={order.dish_snapshot.image}
-                alt={order.dish_snapshot.name}
-                title={order.dish_snapshot.name}
-                width={30}
-                height={30}
-                className='h-[30px] w-[30px] rounded object-cover'
-              />
-              <span className='truncate w-[70px] sm:w-[100px]' title={order.dish_snapshot.name}>
-                {order.dish_snapshot.name}
+              {detail.dish_image && (
+                <Image
+                  src={detail.dish_image}
+                  alt={detail.dish_name}
+                  title={detail.dish_name}
+                  width={30}
+                  height={30}
+                  className='h-[30px] w-[30px] rounded object-cover'
+                />
+              )}
+              <span className='truncate w-[70px] sm:w-[100px]' title={detail.dish_name}>
+                {detail.dish_name}
               </span>
-              <span className='font-semibold' title={`Tổng: ${order.quantity}`}>
-                x{order.quantity}
+              <span className='font-semibold' title={`Tổng: ${detail.quantity}`}>
+                x{detail.quantity}
               </span>
-              <span className='italic'>{formatCurrency(order.quantity * order.dish_snapshot.price)}</span>
+              <span className='italic'>{formatCurrency(detail.quantity * detail.dish_price)}</span>
               <span
                 className='hidden sm:inline'
                 title={`Tạo: ${formatDateTimeToLocaleString(
-                  order.createdAt
-                )} | Cập nhật: ${formatDateTimeToLocaleString(order.updatedAt)}
+                  detail.created_at
+                )} | Cập nhật: ${formatDateTimeToLocaleString(detail.updated_at as any)}
           `}
               >
-                {formatDateTimeToLocaleString(order.createdAt)}
+                {formatDateTimeToLocaleString(detail.created_at)}
               </span>
               <span
                 className='sm:hidden'
                 title={`Tạo: ${formatDateTimeToLocaleString(
-                  order.createdAt
-                )} | Cập nhật: ${formatDateTimeToLocaleString(order.updatedAt)}
+                  detail.created_at
+                )} | Cập nhật: ${formatDateTimeToLocaleString(detail.updated_at as any)}
           `}
               >
-                {formatDateTimeToTimeString(order.createdAt)}
+                {formatDateTimeToTimeString(detail.created_at as any)}
               </span>
+              <div className='ml-auto'>
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  onClick={() => setSelectedOrderDetail(detail)}
+                >
+                  Sửa
+                </Button>
+              </div>
             </div>
           )
         })}
@@ -94,8 +131,8 @@ export default function OrderGuestDetail({ guest, orders }: { guest: Guest; orde
         <Badge>
           <span>
             {formatCurrency(
-              ordersFilterToPurchase.reduce((acc, order) => {
-                return acc + order.quantity * order.dish_snapshot.price
+              ordersFilterToPurchase.reduce((acc, detail) => {
+                return acc + detail.quantity * detail.dish_price
               }, 0)
             )}
           </span>
@@ -106,8 +143,8 @@ export default function OrderGuestDetail({ guest, orders }: { guest: Guest; orde
         <Badge variant={'outline'}>
           <span>
             {formatCurrency(
-              purchasedOrderFilter.reduce((acc, order) => {
-                return acc + order.quantity * order.dish_snapshot.price
+              purchasedOrderFilter.reduce((acc, detail) => {
+                return acc + detail.quantity * detail.dish_price
               }, 0)
             )}
           </span>
@@ -115,10 +152,22 @@ export default function OrderGuestDetail({ guest, orders }: { guest: Guest; orde
       </div>
 
       <div>
-        <Button className='w-full' size={'sm'} variant={'secondary'} disabled={ordersFilterToPurchase.length === 0}>
+        <Button 
+          className='w-full' 
+          size={'sm'} 
+          variant={'secondary'} 
+          disabled={ordersFilterToPurchase.length === 0}
+          onClick={pay}
+        >
           Thanh toán tất cả ({ordersFilterToPurchase.length} đơn)
         </Button>
       </div>
+      
+      <EditOrder
+        id={selectedOrderDetail?.id}
+        setId={() => setSelectedOrderDetail(null)}
+        orderDetail={selectedOrderDetail}
+      />
     </div>
   )
 }

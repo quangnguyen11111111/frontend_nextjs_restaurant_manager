@@ -1,33 +1,36 @@
 'use client'
 
-import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { ColumnDef } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
 import { GetOrdersResType } from '@/schemaValidations/order.schema'
 import { useContext } from 'react'
-import { formatCurrency, formatDateTimeToLocaleString, getVietnameseOrderStatus, simpleMatchText } from '@/lib/utils'
-import Image from 'next/image'
+import { formatDateTimeToLocaleString, simpleMatchText } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
-import { OrderStatus, OrderStatusValues } from '@/constants/type'
+import { SessionStatus, SessionStatusValues } from '@/constants/type'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { OrderTableContext } from './order-table'
 import OrderGuestDetail from './order-guest-detail'
+import { useTranslations } from 'next-intl'
 
 type OrderItem = GetOrdersResType['data'][0]
 const orderTableColumns: ColumnDef<OrderItem>[] = [
   {
     accessorKey: 'tableNumber',
     header: 'Bàn',
-    cell: ({ row }) => <div>{row.getValue('tableNumber')}</div>,
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => row.toggleExpanded()}
+          className="p-1 h-6 w-6"
+        >
+          {row.getIsExpanded() ? '▼' : '▶'}
+        </Button>
+        {row.getValue('tableNumber')}
+      </div>
+    ),
     filterFn: (row, columnId, filterValue: string) => {
       if (filterValue === undefined) return true
       return simpleMatchText(String(row.getValue(columnId)), String(filterValue))
@@ -55,7 +58,7 @@ const orderTableColumns: ColumnDef<OrderItem>[] = [
                 </div>
               </PopoverTrigger>
               <PopoverContent className='w-[320px] sm:w-[440px]'>
-                <OrderGuestDetail guest={guest} orders={orderObjectByGuestId[guest.id]} />
+                <OrderGuestDetail guest={guest} order={row.original} />
               </PopoverContent>
             </Popover>
           )}
@@ -68,47 +71,13 @@ const orderTableColumns: ColumnDef<OrderItem>[] = [
     }
   },
   {
-    id: 'dishName',
-    header: 'Món ăn',
+    id: 'detailsCount',
+    header: 'Số món',
     cell: ({ row }) => (
       <div className='flex items-center gap-2'>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Image
-              src={row.original.dish_snapshot.image}
-              alt={row.original.dish_snapshot.name}
-              width={50}
-              height={50}
-              className='rounded-md object-cover w-[50px] h-[50px] cursor-pointer'
-            />
-          </PopoverTrigger>
-          <PopoverContent>
-            <div className='flex flex-wrap gap-2'>
-              <Image
-                src={row.original.dish_snapshot.image}
-                alt={row.original.dish_snapshot.name}
-                width={100}
-                height={100}
-                className='rounded-md object-cover w-[100px] h-[100px]'
-              />
-              <div className='space-y-1 text-sm'>
-                <h3 className='font-semibold'>{row.original.dish_snapshot.name}</h3>
-                <div className='italic'>{formatCurrency(row.original.dish_snapshot.price)}</div>
-                <div>{row.original.dish_snapshot.description}</div>
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
-
-        <div className='space-y-2'>
-          <div className='flex items-center gap-2'>
-            <span>{row.original.dish_snapshot.name}</span>
-            <Badge className='px-1' variant={'secondary'}>
-              x{row.original.quantity}
-            </Badge>
-          </div>
-          <span className='italic'>{formatCurrency(row.original.dish_snapshot.price * row.original.quantity)}</span>
-        </div>
+        <Badge variant='outline'>
+          {row.original.order_details?.length ?? 0} món
+        </Badge>
       </div>
     )
   },
@@ -116,30 +85,31 @@ const orderTableColumns: ColumnDef<OrderItem>[] = [
     accessorKey: 'status',
     header: 'Trạng thái',
     cell: function Cell({ row }) {
+      const t = useTranslations('SessionStatus')
       const { changeStatus } = useContext(OrderTableContext)
-      const changeOrderStatus = async (status: (typeof OrderStatusValues)[number]) => {
+      const changeOrderStatus = async (status: (typeof SessionStatusValues)[number]) => {
         changeStatus({
           orderId: row.original.id,
-          dishId: row.original.dish_snapshot.dishId!,
+          dishId: 0, // No longer applies to a specific dish
           status: status,
-          quantity: row.original.quantity
+          quantity: 0
         })
       }
       return (
         <Select
-          onValueChange={(value: (typeof OrderStatusValues)[number]) => {
+          onValueChange={(value: (typeof SessionStatusValues)[number]) => {
             changeOrderStatus(value)
           }}
-          defaultValue={OrderStatus.Pending}
+          defaultValue={SessionStatus.Active}
           value={row.getValue('status')}
         >
           <SelectTrigger className='w-[140px]'>
             <SelectValue placeholder='Theme' />
           </SelectTrigger>
           <SelectContent>
-            {OrderStatusValues.map((status) => (
+            {SessionStatusValues.map((status) => (
               <SelectItem key={status} value={status}>
-                {getVietnameseOrderStatus(status)}
+                {t(status as any)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -150,45 +120,19 @@ const orderTableColumns: ColumnDef<OrderItem>[] = [
   {
     id: 'orderHandlerName',
     header: 'Người xử lý',
-    cell: ({ row }) => <div>{row.original.orderHandler?.name ?? ''}</div>
+    cell: ({ row }) => <div>{''}</div>
   },
   {
-    accessorKey: 'createdAt',
+    accessorKey: 'created_at',
     header: () => <div>Tạo/Cập nhật</div>,
     cell: ({ row }) => (
       <div className='space-y-2 text-sm'>
-        <div className='flex items-center space-x-4'>{formatDateTimeToLocaleString(row.getValue('createdAt'))}</div>
+        <div className='flex items-center space-x-4'>{formatDateTimeToLocaleString(row.getValue('created_at'))}</div>
         <div className='flex items-center space-x-4'>
-          {formatDateTimeToLocaleString(row.original.updatedAt as unknown as string)}
+          {formatDateTimeToLocaleString(row.original.updated_at as unknown as string)}
         </div>
       </div>
     )
-  },
-  {
-    id: 'actions',
-    enableHiding: false,
-    cell: function Actions({ row }) {
-      const { setOrderIdEdit } = useContext(OrderTableContext)
-      const openEditOrder = () => {
-        setOrderIdEdit(row.original.id)
-      }
-
-      return (
-        <DropdownMenu modal={false}>
-          <DropdownMenuTrigger asChild>
-            <Button variant='ghost' className='h-8 w-8 p-0'>
-              <span className='sr-only'>Open menu</span>
-              <DotsHorizontalIcon className='h-4 w-4' />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align='end'>
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={openEditOrder}>Sửa</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    }
   }
 ]
 

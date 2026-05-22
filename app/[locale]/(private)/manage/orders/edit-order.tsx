@@ -3,79 +3,73 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { UpdateOrderBody, UpdateOrderBodyType } from '@/schemaValidations/order.schema'
+import { UpdateOrderDetailBody, UpdateOrderDetailBodyType } from '@/schemaValidations/order.schema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { useTranslations } from 'next-intl'
 import { getVietnameseOrderStatus } from '@/lib/utils'
 import { OrderStatus, OrderStatusValues } from '@/constants/type'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { DishListResType } from '@/schemaValidations/dish.schema'
 import { DishesDialog } from './dishes-dialog'
-
-const fakeOrderDetail = {
-  id: 30,
-  guestId: 70,
-  guest: {
-    id: 70,
-    name: 'An',
-    tableNumber: 2,
-    createdAt: '2024-07-11T04:30:32.728Z',
-    updatedAt: '2024-07-11T05:00:34.131Z'
-  },
-  tableNumber: 2,
-  dishSnapshotId: 36,
-  dishSnapshot: {
-    id: 36,
-    name: 'Spaghetti 5',
-    price: 50000,
-    image: 'http://localhost:4000/static/e0001b7e08604e0dbabf0d8f95e6174a.jpg',
-    description: 'Mỳ ý',
-    status: 'Available',
-    dishId: 2,
-    createdAt: '2024-07-11T04:30:57.450Z',
-    updatedAt: '2024-07-11T04:30:57.450Z'
-  },
-  quantity: 1,
-  orderHandlerId: null,
-  orderHandler: null,
-  status: 'Paid',
-  createdAt: '2024-07-11T04:30:57.450Z',
-  updatedAt: '2024-07-11T04:31:38.806Z',
-  table: {
-    number: 2,
-    capacity: 10,
-    status: 'Reserved',
-    token: '667f3b1ce5e4429990dacea1809d20e7',
-    createdAt: '2024-06-21T06:52:26.847Z',
-    updatedAt: '2024-07-03T04:36:51.130Z'
-  }
-}
+import { useUpdateOrderDetailMutation } from '@/queries/useOrder'
+import { handleErrorApi } from '@/lib/utils'
+import { useAppStore } from '@/components/query-provider'
 
 export default function EditOrder({
   id,
   setId,
-  onSubmitSuccess
+  onSubmitSuccess,
+  orderDetail
 }: {
   id?: number | undefined
   setId: (value: number | undefined) => void
   onSubmitSuccess?: () => void
+  orderDetail?: { status: (typeof OrderStatusValues)[number]; quantity: number } | null
 }) {
-  const [selectedDish, setSelectedDish] = useState<DishListResType['data'][0]>(fakeOrderDetail.dishSnapshot as any)
-  const orderDetail = fakeOrderDetail
-  const form = useForm<UpdateOrderBodyType>({
-    resolver: zodResolver(UpdateOrderBody),
+  const t = useTranslations('OrderStatus')
+  const updateOrderMutation = useUpdateOrderDetailMutation()
+  const socket = useAppStore(state => state.socket)
+  const form = useForm<UpdateOrderDetailBodyType>({
+    resolver: zodResolver(UpdateOrderDetailBody),
     defaultValues: {
       status: OrderStatus.Pending,
-      dishId: 0,
       quantity: 1
     }
   })
 
-  const onSubmit = async (values: UpdateOrderBodyType) => {}
+  useEffect(() => {
+    if (orderDetail) {
+      form.reset({
+        status: orderDetail.status,
+        quantity: orderDetail.quantity
+      })
+    }
+  }, [orderDetail, form])
+
+  const onSubmit = async (values: UpdateOrderDetailBodyType) => {
+    if (!id) return
+    try {
+      const res = await updateOrderMutation.mutateAsync({
+        orderDetailId: id,
+        ...values
+      })
+      if (res.payload.data?.guest_id) {
+        socket?.emit('update-order', {
+          guestId: res.payload.data.guest_id,
+          data: res.payload.data
+        })
+      }
+      reset()
+      onSubmitSuccess && onSubmitSuccess()
+    } catch (error) {
+      handleErrorApi({ error })
+    }
+  }
 
   const reset = () => {
     setId(undefined)
@@ -102,30 +96,6 @@ export default function EditOrder({
             onSubmit={form.handleSubmit(onSubmit, console.log)}
           >
             <div className='grid gap-4 py-4'>
-              <FormField
-                control={form.control}
-                name='dishId'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                    <FormLabel>Món ăn</FormLabel>
-                    <div className='flex items-center col-span-2 space-x-4'>
-                      <Avatar className='aspect-square w-[50px] h-[50px] rounded-md object-cover'>
-                        <AvatarImage src={selectedDish?.image} />
-                        <AvatarFallback className='rounded-none'>{selectedDish?.name}</AvatarFallback>
-                      </Avatar>
-                      <div>{selectedDish?.name}</div>
-                    </div>
-
-                    <DishesDialog
-                      onChoose={(dish) => {
-                        field.onChange(dish.id)
-                        setSelectedDish(dish)
-                      }}
-                    />
-                  </FormItem>
-                )}
-              />
-
               <FormField
                 control={form.control}
                 name='quantity'
@@ -172,7 +142,7 @@ export default function EditOrder({
                         <SelectContent>
                           {OrderStatusValues.map((status) => (
                             <SelectItem key={status} value={status}>
-                              {getVietnameseOrderStatus(status)}
+                              {t(status)}
                             </SelectItem>
                           ))}
                         </SelectContent>

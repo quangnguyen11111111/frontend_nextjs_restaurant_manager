@@ -4,17 +4,19 @@ import { useAppStore } from "@/components/query-provider";
 import { Badge } from "@/components/ui/badge";
 
 import { OrderStatus } from "@/constants/type";
-import { formatCurrency, getVietnameseOrderStatus } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { useGuestGetOrderListQuery } from "@/queries/useGuest";
 import {
   PayGuestOrdersResType,
-  UpdateOrderResType,
+  UpdateOrderDetailResType,
 } from "@/schemaValidations/order.schema";
 import Image from "next/image";
 import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 export default function OrdersCart() {
+  const t = useTranslations("OrderStatus");
   const { data, refetch } = useGuestGetOrderListQuery();
   const orders = useMemo(() => data?.payload.data ?? [], [data]);
   
@@ -24,28 +26,14 @@ export default function OrdersCart() {
     
     return orders.reduce(
       (result, order) => {
-        if (
-          order.status === OrderStatus.Delivered ||
-          order.status === OrderStatus.Processing ||
-          order.status === OrderStatus.Pending
-        ) {
+        if (order.status !== OrderStatus.Cancelled) {
           return {
             ...result,
             waitingForPaying: {
               price:
                 result.waitingForPaying.price +
-                order.dish_snapshot.price * order.quantity,
+                order.dish_price * order.quantity,
               quantity: result.waitingForPaying.quantity + order.quantity,
-            },
-          };
-        }
-        if (order.status === OrderStatus.Paid) {
-          return {
-            ...result,
-            paid: {
-              price:
-                result.paid.price + order.dish_snapshot.price * order.quantity,
-              quantity: result.paid.quantity + order.quantity,
             },
           };
         }
@@ -77,17 +65,18 @@ export default function OrdersCart() {
       console.log("disconnect");
     }
 
-    function onUpdateOrder(data: UpdateOrderResType["data"]) {
+    function onUpdateOrder(data: UpdateOrderDetailResType["data"]) {
       const {
-        dish_snapshot: { name },
+        dish_name: name,
         quantity,
+        status,
       } = data;
-      toast.success(`Đơn ${name} x${quantity} đã được cập nhật`);
+      toast.success(`Đơn ${name} x${quantity} đã chuyển sang trạng thái: ${t(status as any)}`);
       refetch();
     }
 
     function onPayment(data: PayGuestOrdersResType["data"]) {
-      const { guest } = data[0];
+      const { guest } = data;
       toast.success(`Đơn của khách ${guest?.name} đã được thanh toán`);
       refetch();
     }
@@ -110,37 +99,32 @@ export default function OrdersCart() {
         <div key={order.id} className="flex gap-4">
           <div className="text-sm font-semibold">{index + 1}</div>
           <div className="flex-shrink-0 relative">
-            <Image
-              src={order.dish_snapshot.image}
-              alt={order.dish_snapshot.name}
-              height={100}
-              width={100}
-              quality={100}
-              className="object-cover w-[80px] h-[80px] rounded-md"
-            />
+            {order.dish_image && (
+              <Image
+                src={order.dish_image}
+                alt={order.dish_name}
+                height={100}
+                width={100}
+                quality={100}
+                className="object-cover w-[80px] h-[80px] rounded-md"
+              />
+            )}
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm">{order.dish_snapshot.name}</h3>
+            <h3 className="text-sm">{order.dish_name}</h3>
             <div className="text-xs font-semibold">
-              {formatCurrency(order.dish_snapshot.price)} x{" "}
+              {formatCurrency(order.dish_price)} x{" "}
               <Badge className="px-1">{order.quantity}</Badge>
             </div>
           </div>
           <div className="flex-shrink-0 ml-auto flex justify-center items-center">
             <Badge variant={"outline"}>
-              {getVietnameseOrderStatus(order.status)}
+              {t(order.status as any)}
             </Badge>
           </div>
         </div>
       ))}
-      {paid.quantity !== 0 && (
-        <div className="sticky bottom-0 ">
-          <div className="w-full flex space-x-4 text-xl font-semibold">
-            <span>Đơn đã thanh toán · {paid.quantity} món</span>
-            <span>{formatCurrency(paid.price)}</span>
-          </div>
-        </div>
-      )}
+
       <div className="sticky bottom-0 ">
         <div className="w-full flex space-x-4 text-xl font-semibold">
           <span>Đơn chưa thanh toán · {waitingForPaying.quantity} món</span>

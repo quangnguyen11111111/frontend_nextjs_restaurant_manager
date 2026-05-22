@@ -1,5 +1,5 @@
 import { OrderObjectByGuestID, ServingGuestByTableNumber, Statics } from './order-table'
-import { OrderStatus } from '@/constants/type'
+import { SessionStatus } from '@/constants/type'
 import { GetOrdersResType } from '@/schemaValidations/order.schema'
 import { useMemo } from 'react'
 
@@ -7,43 +7,44 @@ export const useOrderService = (orderList: GetOrdersResType['data']) => {
   const result = useMemo(() => {
     const statics: Statics = {
       status: {
-        Pending: 0,
-        Processing: 0,
-        Delivered: 0,
+        Pending_Arrival: 0,
+        Active: 0,
         Paid: 0,
-        Rejected: 0
+        Cancelled: 0
       },
       table: {}
     }
     const orderObjectByGuestId: OrderObjectByGuestID = {}
     const guestByTableNumber: ServingGuestByTableNumber = {}
     orderList.forEach((order) => {
-      statics.status[order.status] = statics.status[order.status] + 1
+      if(order.status) {
+        statics.status[order.status] = (statics.status[order.status] || 0) + 1
+      }
       // Nếu table và guest chưa bị xóa
-      if (order.tableNumber !== null && order.guestId !== null) {
-        if (!statics.table[order.tableNumber]) {
-          statics.table[order.tableNumber] = {}
+      if (order.table_number !== null && order.guest_id !== null) {
+        if (!statics.table[order.table_number]) {
+          statics.table[order.table_number] = {}
         }
-        statics.table[order.tableNumber][order.guestId] = {
-          ...statics.table[order.tableNumber]?.[order.guestId],
-          [order.status]: (statics.table[order.tableNumber]?.[order.guestId]?.[order.status] ?? 0) + 1
+        statics.table[order.table_number][order.guest_id] = {
+          ...statics.table[order.table_number]?.[order.guest_id],
+          [order.status]: (statics.table[order.table_number]?.[order.guest_id]?.[order.status] ?? 0) + 1
         }
       }
 
       // Tính toán cho orderObjectByGuestId
-      if (order.guestId) {
-        if (!orderObjectByGuestId[order.guestId]) {
-          orderObjectByGuestId[order.guestId] = []
+      if (order.guest_id) {
+        if (!orderObjectByGuestId[order.guest_id]) {
+          orderObjectByGuestId[order.guest_id] = []
         }
-        orderObjectByGuestId[order.guestId].push(order)
+        orderObjectByGuestId[order.guest_id].push(order)
       }
 
       // Tính toán cho guestByTableNumber
-      if (order.tableNumber && order.guestId) {
-        if (!guestByTableNumber[order.tableNumber]) {
-          guestByTableNumber[order.tableNumber] = {}
+      if (order.table_number && order.guest_id) {
+        if (!guestByTableNumber[order.table_number]) {
+          guestByTableNumber[order.table_number] = {}
         }
-        guestByTableNumber[order.tableNumber][order.guestId] = orderObjectByGuestId[order.guestId]
+        guestByTableNumber[order.table_number][order.guest_id] = orderObjectByGuestId[order.guest_id]
       }
     })
 
@@ -56,7 +57,7 @@ export const useOrderService = (orderList: GetOrdersResType['data']) => {
       for (const guestId in guestObject) {
         const guestOrders = guestObject[guestId]
         const isServingGuest = guestOrders.some((order) =>
-          [OrderStatus.Pending, OrderStatus.Processing, OrderStatus.Delivered].includes(order.status as any)
+          order.status === SessionStatus.Active || order.status === SessionStatus.Pending_Arrival
         )
         if (isServingGuest) {
           servingGuestObject[Number(guestId)] = guestOrders

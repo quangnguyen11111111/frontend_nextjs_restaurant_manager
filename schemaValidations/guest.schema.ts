@@ -1,5 +1,5 @@
 import { Role } from '@/constants/type'
-import { OrderSchema } from '@/schemaValidations/order.schema'
+import { OrderSchema, OrderDetailSchema } from '@/schemaValidations/order.schema'
 import z from 'zod'
 
 export const GuestLoginBody = z
@@ -20,10 +20,11 @@ export const GuestLoginRes = z.object({
       id: z.number(),
       name: z.string(),
       role: z.enum([Role.Guest]),
-      tableNumber: z.number().nullable(),
+      orderId: z.number().nullable(),
       createdAt: z.date(),
       updatedAt: z.date()
-    })
+    }),
+    hasActiveSession: z.boolean().optional()
   }),
   message: z.string()
 })
@@ -41,7 +42,7 @@ export type GuestCreateOrdersBodyType = z.TypeOf<typeof GuestCreateOrdersBody>
 
 export const GuestCreateOrdersRes = z.object({
   message: z.string(),
-  data: z.array(OrderSchema)
+  data: z.array(OrderDetailSchema)
 })
 
 export type GuestCreateOrdersResType = z.TypeOf<typeof GuestCreateOrdersRes>

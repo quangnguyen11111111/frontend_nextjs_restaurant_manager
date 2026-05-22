@@ -73,5 +73,19 @@
       "logoutCancel": "Cancel",
       "logoutConfirm": "Signing out may result in loss of your orders"
     }
+  },
+  "OrderStatus": {
+    "Pending": "Pending",
+    "Processing": "Processing",
+    "Delivered": "Delivered",
+    "Cancelled": "Cancelled",
+    "Unknown": "Unknown"
+  },
+  "SessionStatus": {
+    "Pending_Arrival": "Pending Arrival",
+    "Active": "Active",
+    "Paid": "Paid",
+    "Cancelled": "Cancelled",
+    "Unknown": "Unknown"
   }
 }

@@ -73,5 +73,19 @@
       "logoutCancel": "Hủy",
       "logoutConfirm": "Đăng xuất có thể dẫn đến mất dữ liệu đơn hàng của bạn"
     }
+  },
+  "OrderStatus": {
+    "Pending": "Chờ xử lý",
+    "Processing": "Đang nấu",
+    "Delivered": "Đã phục vụ",
+    "Cancelled": "Hủy bỏ",
+    "Unknown": "Không xác định"
+  },
+  "SessionStatus": {
+    "Pending_Arrival": "Chờ nhận bàn",
+    "Active": "Đang dùng bữa",
+    "Paid": "Đã thanh toán",
+    "Cancelled": "Đã hủy",
+    "Unknown": "Không xác định"
   }
 }

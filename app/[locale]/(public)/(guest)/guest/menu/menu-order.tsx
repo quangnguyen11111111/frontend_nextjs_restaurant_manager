@@ -22,6 +22,7 @@ import SidebarPanel from "@/components/layout/menu/SidebarPanel";
 import { useGuestOrderMutation } from "@/queries/useGuest";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useAppStore } from "@/components/query-provider";
 
 export default function MenuOrder() {
   const { data: categoryTreeData, isLoading } = useGetCategoryTreeQuery();
@@ -29,6 +30,7 @@ export default function MenuOrder() {
     flattenCategoryTree(categoryTreeData?.payload.data ?? []);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number>(0);
   const { mutateAsync } = useGuestOrderMutation();
+  const socket = useAppStore((state) => state.socket);
   const [cart, setCart] = useState<{ dishId: number; quantity: number }[]>([]);
   useEffect(() => {
     const cartFromStorage = getDataCartFromLocalStorage();
@@ -116,7 +118,10 @@ export default function MenuOrder() {
   const router = useRouter();
   const handleOrder = async () => {
     try {
-      await mutateAsync(cart);
+      const res = await mutateAsync(cart);
+      if (res.payload.data) {
+        socket?.emit("new-order", res.payload.data);
+      }
       toast.success("Đặt món thành công!");
       setCart([]);
       removeDataCartFromLocalStorage();

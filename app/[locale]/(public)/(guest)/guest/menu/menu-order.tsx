@@ -31,6 +31,7 @@ export default function MenuOrder() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number>(0);
   const { mutateAsync } = useGuestOrderMutation();
   const socket = useAppStore((state) => state.socket);
+  const role = useAppStore((state) => state.role);
   const [cart, setCart] = useState<{ dishId: number; quantity: number }[]>([]);
   useEffect(() => {
     const cartFromStorage = getDataCartFromLocalStorage();
@@ -117,6 +118,12 @@ export default function MenuOrder() {
   );
   const router = useRouter();
   const handleOrder = async () => {
+    if (role !== "Guest") {
+      toast.error("Bạn cần đặt bàn hoặc đăng nhập trước khi gọi món!");
+      router.push("/book");
+      return;
+    }
+
     try {
       const res = await mutateAsync(cart);
       if (res.payload.data) {

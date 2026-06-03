@@ -23,6 +23,10 @@ const guestApiRequest = {
     http.post<GuestLoginResType>("/api/guest/auth/login", body, {
       baseUrl: "",
     }),
+  sRecover: (body: { customer_phone: string; session_pin: string }) =>
+    http.post<any>("/api/guests/auth/recover", body),
+  recover: (body: { customer_phone: string; session_pin: string }) =>
+    http.post<any>("/api/guest/auth/recover", body, { baseUrl: "" }),
   sLogout: (
     body: LogoutBodyType & {
       accessToken: string;

@@ -9,6 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useAppStore } from "@/components/query-provider";
+import { decodeToken, generateSocketInstace, setAccessTokenToLocalStorage, setRefreshTokenToLocalStorage } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 export default function BookReservationPage() {
   const [step, setStep] = useState(1);
@@ -18,6 +21,9 @@ export default function BookReservationPage() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [reservationSuccess, setReservationSuccess] = useState<any>(null);
+  const setRole = useAppStore(state => state.setRole);
+  const setSocket = useAppStore(state => state.setSocket);
+  const router = useRouter();
 
   const targetDateTime = targetDate && targetTime ? `${targetDate}T${targetTime}:00` : "";
 
@@ -51,7 +57,18 @@ export default function BookReservationPage() {
         customer_name: customerName,
         customer_phone: customerPhone,
       });
-      setReservationSuccess(res.payload.data);
+
+      const data = res.payload.data as any; // any because schema doesn't have accessToken yet
+      setReservationSuccess(data.order || data);
+
+      if (data.accessToken && data.refreshToken) {
+        setAccessTokenToLocalStorage(data.accessToken);
+        setRefreshTokenToLocalStorage(data.refreshToken);
+        const decoded = decodeToken(data.accessToken);
+        setRole(decoded.role);
+        setSocket(generateSocketInstace(data.accessToken));
+      }
+
       setStep(2);
     } catch (error) {
       toast.error("Đặt bàn thất bại. Vui lòng thử lại.");
@@ -76,7 +93,12 @@ export default function BookReservationPage() {
             <p><strong>Thời gian:</strong> {format(new Date(reservationSuccess.reservation_time), "HH:mm dd/MM/yyyy")}</p>
             <p><strong>Số người:</strong> {reservationSuccess.guest_count}</p>
             <p className="text-sm text-muted-foreground mt-4">Vui lòng đến đúng giờ. Mã đặt bàn sẽ hết hạn sau 30 phút.</p>
-            <Button className="w-full mt-4" onClick={() => window.location.href = "/"}>Về Trang Chủ</Button>
+            <Button className="w-full mt-4 bg-orange-500 hover:bg-orange-600" onClick={() => router.push("/guest/menu")}>
+              Xem Thực Đơn & Theo Dõi Đơn
+            </Button>
+            <Button variant="outline" className="w-full mt-2" onClick={() => window.location.href = "/"}>
+              Về Trang Chủ
+            </Button>
           </CardContent>
         </Card>
       </div>

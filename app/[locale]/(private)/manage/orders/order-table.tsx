@@ -55,10 +55,8 @@ import {
 import { endOfDay, format, startOfDay } from "date-fns";
 import { useGetOrderListQuery, useUpdateSessionStatusMutation } from "@/queries/useOrder";
 import { useListTableQuery } from "@/queries/useTable";
-// import TableSkeleton from '@/app/manage/orders/table-skeleton'
-// import { toast } from '@/components/ui/use-toast'
-// import { GuestCreateOrdersResType } from '@/schemaValidations/guest.schema'
-
+import { useCheckInReservationMutation } from "@/queries/useReservation";
+import { toast } from "sonner";
 export const OrderTableContext = createContext({
   setOrderIdEdit: (value: number | undefined) => {},
   orderIdEdit: undefined as number | undefined,
@@ -68,6 +66,7 @@ export const OrderTableContext = createContext({
     status: (typeof OrderStatusValues)[number] | (typeof SessionStatusValues)[number];
     quantity: number;
   }) => {},
+  checkIn: (payload: { orderId: number; table_number: number }) => {},
   orderObjectByGuestId: {} as OrderObjectByGuestID,
 });
 
@@ -120,6 +119,7 @@ export default function OrderTable() {
   const { statics, orderObjectByGuestId, servingGuestByTableNumber } =
     useOrderService(orderList);
   const updateSessionMutation = useUpdateSessionStatusMutation();
+  const checkInMutation = useCheckInReservationMutation();
 
   const changeStatus = async (body: {
     orderId: number;
@@ -132,6 +132,15 @@ export default function OrderTable() {
         orderId: body.orderId,
         status: body.status,
       });
+    } catch (error) {
+      handleErrorApi({ error });
+    }
+  };
+
+  const checkIn = async (body: { orderId: number; table_number: number }) => {
+    try {
+      const res = await checkInMutation.mutateAsync(body);
+      toast.success(res.payload.message || 'Chọn bàn thành công');
     } catch (error) {
       handleErrorApi({ error });
     }
@@ -201,6 +210,7 @@ export default function OrderTable() {
         orderIdEdit,
         setOrderIdEdit,
         changeStatus,
+        checkIn,
         orderObjectByGuestId,
       }}
     >
@@ -248,10 +258,10 @@ export default function OrderTable() {
           <Input
             placeholder="Số bàn"
             value={
-              (table.getColumn("tableNumber")?.getFilterValue() as string) ?? ""
+              (table.getColumn("table_number")?.getFilterValue() as string) ?? ""
             }
             onChange={(event) =>
-              table.getColumn("tableNumber")?.setFilterValue(event.target.value)
+              table.getColumn("table_number")?.setFilterValue(event.target.value)
             }
             className="max-w-[80px]"
           />

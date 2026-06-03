@@ -1,5 +1,5 @@
 import reservationsApiRequest from "@/apiRequest/reservations";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useCreateReservationMutation = () => {
   return useMutation({
@@ -8,8 +8,12 @@ export const useCreateReservationMutation = () => {
 };
 
 export const useCheckInReservationMutation = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ orderId, table_number }: { orderId: number, table_number: number }) =>
       reservationsApiRequest.checkInReservation(orderId, { table_number }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    }
   });
 };

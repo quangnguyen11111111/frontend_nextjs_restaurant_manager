@@ -16,6 +16,7 @@ import { useTranslations } from 'next-intl'
 import { handleErrorApi } from '@/lib/utils'
 import EditOrder from './edit-order'
 import { useAppStore } from '@/components/query-provider'
+import { OrderStateFactory } from '@/lib/patterns/state/OrderState'
 
 type Guest = NonNullable<GetOrdersResType['data'][0]['guest']>
 type Order = GetOrdersResType['data'][0]
@@ -26,10 +27,11 @@ export default function OrderGuestDetail({ guest, order }: { guest: Guest; order
   const socket = useAppStore(state => state.socket)
   const [selectedOrderDetail, setSelectedOrderDetail] = useState<any>(null)
   
-  const ordersFilterToPurchase = (guest && order.status !== SessionStatus.Paid)
+  const orderState = OrderStateFactory.getState(order.status)
+  const ordersFilterToPurchase = (guest && orderState.canPay())
     ? details.filter((detail) => detail.status !== OrderStatus.Cancelled)
     : []
-  const purchasedOrderFilter = (guest && order.status === SessionStatus.Paid) 
+  const purchasedOrderFilter = (guest && !orderState.canPay()) 
     ? details.filter((detail) => detail.status !== OrderStatus.Cancelled) 
     : []
 
@@ -156,10 +158,12 @@ export default function OrderGuestDetail({ guest, order }: { guest: Guest; order
           className='w-full' 
           size={'sm'} 
           variant={'secondary'} 
-          disabled={ordersFilterToPurchase.length === 0}
+          disabled={ordersFilterToPurchase.length === 0 || !orderState.canPay() || details.some(d => d.status === OrderStatus.Pending || d.status === OrderStatus.Processing)}
           onClick={pay}
         >
-          Thanh toán tất cả ({ordersFilterToPurchase.length} đơn)
+          {details.some(d => d.status === OrderStatus.Pending || d.status === OrderStatus.Processing) 
+            ? 'Chưa thể thanh toán do có món đang xử lý' 
+            : `Thanh toán tất cả (${ordersFilterToPurchase.length} đơn)`}
         </Button>
       </div>
       

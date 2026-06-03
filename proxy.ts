@@ -30,8 +30,13 @@ export function proxy(request: NextRequest) {
   const refreshToken = request.cookies.get("refreshToken")?.value;
   const accessToken = request.cookies.get("accessToken")?.value;
   const locale = request.cookies.get("NEXT_LOCALE")?.value ?? defaultLocale;
+  // Bỏ qua trang khôi phục đơn hàng và menu để ai cũng có thể vào
+  const isGuestRecoverPath = pathname.startsWith(`/${locale}/guest/recover`);
+  const isGuestMenuPath = pathname.startsWith(`/${locale}/guest/menu`);
+  const isPublicGuestPath = isGuestRecoverPath || isGuestMenuPath;
+
   //   Nếu chưa đăng nhập mà truy cập vào trang private thì chuyển hướng về login
-  if (privatePaths.some((path) => pathname.startsWith(path)) && !refreshToken) {
+  if (privatePaths.some((path) => pathname.startsWith(path)) && !refreshToken && !isPublicGuestPath) {
     return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
   }
   if (refreshToken) {
@@ -48,10 +53,11 @@ export function proxy(request: NextRequest) {
     const isGuestGoToManagePath =
       role === Role.Guest &&
       managePaths.some((path) => pathname.startsWith(path));
-    // Không phải Guest nhưng cố vào route guest
+    // Không phải Guest nhưng cố vào route guest (ngoại trừ trang recover/menu vì ai cũng được vào)
     const isNotGuestGoToGuestPath =
       role !== Role.Guest &&
-      guestPaths.some((path) => pathname.startsWith(path));
+      guestPaths.some((path) => pathname.startsWith(path)) &&
+      !isPublicGuestPath;
     // Không phải Owner nhưng cố tình truy cập vào các route dành cho owner
     const isNotOwnerGoToOwnerPath =
       role !== Role.Owner &&

@@ -22,8 +22,12 @@ export const ReservationRes = z.object({
 export type ReservationResType = z.TypeOf<typeof ReservationRes>;
 
 const reservationsApiRequest = {
-  createReservation: (body: CreateReservationBodyType) =>
+  sCreateReservation: (body: CreateReservationBodyType) =>
     http.post<ReservationResType>("/api/reservations", body),
+  createReservation: (body: CreateReservationBodyType) =>
+    http.post<ReservationResType>("/api/guest/auth/reservation", body, {
+      baseUrl: "",
+    }),
   checkInReservation: (orderId: number, body: CheckInReservationBodyType) =>
     http.post<ReservationResType>(`/api/reservations/${orderId}/check-in`, body),
 };

@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import AutoPagination from '@/components/share/auto-pagination'
 import { useEffect, useState } from 'react'
+
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -19,6 +20,7 @@ import { cn, getVietnameseTableStatus, simpleMatchText } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { TableListResType } from '@/schemaValidations/table.schema'
 import { TableStatus } from '@/constants/type'
+import { useListTableQuery } from '../../../../../queries/useTable'
 
 type TableItem = TableListResType['data'][0]
 
@@ -46,9 +48,10 @@ export const columns: ColumnDef<TableItem>[] = [
 
 const PAGE_SIZE = 10
 
-export function TablesDialog({ onChoose }: { onChoose: (table: TableItem) => void }) {
+export function TablesDialog({ onChoose, children }: { onChoose: (table: TableItem) => void, children?: React.ReactNode }) {
   const [open, setOpen] = useState(false)
-  const data: TableListResType['data'] = []
+  const tableListQuery = useListTableQuery()
+  const data = tableListQuery.data?.payload.data ?? []
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -95,7 +98,7 @@ export function TablesDialog({ onChoose }: { onChoose: (table: TableItem) => voi
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant='outline'>Thay đổi</Button>
+        {children ?? <Button variant='outline'>Thay đổi</Button>}
       </DialogTrigger>
       <DialogContent className='sm:max-w-[600px] max-h-full overflow-auto'>
         <DialogHeader>

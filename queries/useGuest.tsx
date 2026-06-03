@@ -8,6 +8,12 @@ export const useGuestLoginMutation = () => {
   })
 }
 
+export const useGuestRecoverMutation = () => {
+  return useMutation({
+    mutationFn: guestApiRequest.recover
+  })
+}
+
 export const useGuestLogoutMutation = () => {
   return useMutation({
     mutationFn: guestApiRequest.logout

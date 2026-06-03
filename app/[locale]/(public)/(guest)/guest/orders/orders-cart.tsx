@@ -127,7 +127,7 @@ export default function OrdersCart() {
 
       <div className="sticky bottom-0 ">
         <div className="w-full flex space-x-4 text-xl font-semibold">
-          <span>Đơn chưa thanh toán · {waitingForPaying.quantity} món</span>
+          <span>{orders.length > 0 && (orders[0] as any).order?.status === 'Paid' ? 'Đã thanh toán' : 'Đơn chưa thanh toán'} · {waitingForPaying.quantity} món</span>
           <span>{formatCurrency(waitingForPaying.price)}</span>
         </div>
       </div>

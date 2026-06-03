@@ -19,6 +19,7 @@ import { DishesDialog } from './dishes-dialog'
 import { useUpdateOrderDetailMutation } from '@/queries/useOrder'
 import { handleErrorApi } from '@/lib/utils'
 import { useAppStore } from '@/components/query-provider'
+import { OrderDetailStateFactory } from '@/lib/patterns/state/OrderDetailState'
 
 export default function EditOrder({
   id,
@@ -140,7 +141,14 @@ export default function EditOrder({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {OrderStatusValues.map((status) => (
+                          {OrderStatusValues.filter((s) => {
+                            const stateObj = OrderDetailStateFactory.getState(orderDetail?.status || OrderStatus.Pending);
+                            if (s === stateObj.status) return true;
+                            if (s === OrderStatus.Processing) return stateObj.canProcess();
+                            if (s === OrderStatus.Delivered) return stateObj.canDeliver();
+                            if (s === OrderStatus.Cancelled) return stateObj.canCancel();
+                            return false;
+                          }).map((status) => (
                             <SelectItem key={status} value={status}>
                               {t(status)}
                             </SelectItem>

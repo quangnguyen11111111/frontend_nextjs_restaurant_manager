@@ -12,25 +12,36 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { OrderTableContext } from './order-table'
 import OrderGuestDetail from './order-guest-detail'
 import { useTranslations } from 'next-intl'
+import { TablesDialog } from './tables-dialog'
 
 type OrderItem = GetOrdersResType['data'][0]
 const orderTableColumns: ColumnDef<OrderItem>[] = [
   {
-    accessorKey: 'tableNumber',
+    accessorKey: 'table_number',
     header: 'Bàn',
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => row.toggleExpanded()}
-          className="p-1 h-6 w-6"
-        >
-          {row.getIsExpanded() ? '▼' : '▶'}
-        </Button>
-        {row.getValue('tableNumber')}
-      </div>
-    ),
+    cell: function Cell({ row }) {
+      const { checkIn } = useContext(OrderTableContext)
+      const tableNumber = row.original.table_number
+      return (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => row.toggleExpanded()}
+            className="p-1 h-6 w-6"
+          >
+            {row.getIsExpanded() ? '▼' : '▶'}
+          </Button>
+          {tableNumber ? (
+            tableNumber
+          ) : (
+            <TablesDialog onChoose={(table) => checkIn({ orderId: row.original.id, table_number: table.number })}>
+              <Button variant="outline" size="sm">Chọn bàn</Button>
+            </TablesDialog>
+          )}
+        </div>
+      )
+    },
     filterFn: (row, columnId, filterValue: string) => {
       if (filterValue === undefined) return true
       return simpleMatchText(String(row.getValue(columnId)), String(filterValue))
@@ -42,11 +53,13 @@ const orderTableColumns: ColumnDef<OrderItem>[] = [
     cell: function Cell({ row }) {
       const { orderObjectByGuestId } = useContext(OrderTableContext)
       const guest = row.original.guest
+      const reservationTime = row.original.reservation_time
+      
       return (
         <div>
           {!guest && (
             <div>
-              <span>Đã bị xóa</span>
+              <span>{row.original.customer_name ? row.original.customer_name : 'Đã bị xóa'}</span>
             </div>
           )}
           {guest && (
@@ -123,16 +136,27 @@ const orderTableColumns: ColumnDef<OrderItem>[] = [
     cell: ({ row }) => <div>{''}</div>
   },
   {
-    accessorKey: 'created_at',
-    header: () => <div>Tạo/Cập nhật</div>,
-    cell: ({ row }) => (
-      <div className='space-y-2 text-sm'>
-        <div className='flex items-center space-x-4'>{formatDateTimeToLocaleString(row.getValue('created_at'))}</div>
-        <div className='flex items-center space-x-4'>
-          {formatDateTimeToLocaleString(row.original.updated_at as unknown as string)}
+    id: 'time',
+    header: () => <div>Thời gian</div>,
+    cell: ({ row }) => {
+      const reservationTime = row.original.reservation_time
+      const createdAt = row.original.created_at
+      const updatedAt = row.original.updated_at
+      return (
+        <div className='space-y-2 text-sm'>
+          <div className='flex items-center space-x-4'>
+            {reservationTime ? (
+              <span className="font-semibold text-primary">Đến: {formatDateTimeToLocaleString(reservationTime as unknown as string)}</span>
+            ) : (
+              <span>Tạo: {formatDateTimeToLocaleString(createdAt as unknown as string)}</span>
+            )}
+          </div>
+          <div className='flex items-center space-x-4'>
+            <span className="text-muted-foreground">Cập nhật: {formatDateTimeToLocaleString(updatedAt as unknown as string)}</span>
+          </div>
         </div>
-      </div>
-    )
+      )
+    }
   }
 ]
 

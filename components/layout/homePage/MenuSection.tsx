@@ -4,7 +4,6 @@ import MenuCard from "./MenuCard";
 import { CategoryTreeResType } from "@/schemaValidations/category.schema";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import dishApiRequest from "@/apiRequest/dish";
 import { useGetDishListByCategoryQuery } from "@/queries/useDish";
 
 export default function MenuSection({
@@ -12,7 +11,7 @@ export default function MenuSection({
   categoryPayload,
 }: {
   items: DishListResType["data"];
-  categoryPayload: CategoryTreeResType["data"]; // Replace 'any' with the actual type if available
+  categoryPayload: CategoryTreeResType["data"];
 }) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
     categoryPayload[0]?.id || null,
@@ -22,28 +21,27 @@ export default function MenuSection({
     page: 1,
   });
   const listDish = data?.payload.data ?? items;
+  
   return (
-    <section className="relative isolate overflow-hidden bg-[#0f2f2b] px-6 py-16 text-white shadow-[0_30px_80px_rgba(8,21,18,0.4)] md:px-10">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,#204c45_0%,#0f2f2b_60%)]" />
-      <div className="absolute -left-12 top-1/3 -z-10 h-40 w-40 rounded-full border border-emerald-400/10" />
-      <div className="absolute -right-10 bottom-16 -z-10 h-48 w-48 rounded-full border border-emerald-300/15" />
-
+    <section id="menu" className="bg-[#123c34] py-16 px-4 md:px-10">
       <div className="mx-auto flex max-w-6xl flex-col items-center text-center">
-        <span className="text-xs uppercase tracking-[0.35em] text-emerald-100/80">
-          Big Boy Restaurant
-        </span>
-        <p className="mt-3 max-w-2xl text-sm text-emerald-100/80">
-          Chọn danh mục để khám phá các món ăn đặc sắc của nhà hàng.
-        </p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <div className="flex items-center gap-4 mb-8">
+          <span className="text-[#d4a373] text-2xl">✤</span>
+          <h2 className="font-serif text-4xl font-bold italic text-[#d4a373]">
+            Thực đơn của chúng tôi
+          </h2>
+          <span className="text-[#d4a373] text-2xl">✤</span>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-center gap-3">
           {categoryPayload.map((category) => (
             <button
               key={category.id}
               className={cn(
-                "rounded-full px-4 py-2 text-sm font-medium transition",
+                "rounded font-bold px-6 py-2 text-sm transition-all border",
                 selectedCategoryId === category.id
-                  ? "bg-emerald-500 text-white hover:bg-emerald-600"
-                  : "bg-emerald-100/80 text-emerald-900 hover:bg-emerald-200",
+                  ? "bg-[#d4a373] text-[#123c34] border-[#d4a373]"
+                  : "bg-transparent text-white border-white hover:border-[#d4a373] hover:text-[#d4a373]",
               )}
               onClick={() => setSelectedCategoryId(category.id)}
             >
@@ -52,9 +50,10 @@ export default function MenuSection({
           ))}
         </div>
       </div>
-      <div className="mx-auto mt-10 grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      
+      <div className="mx-auto mt-12 grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
         {isLoading ? (
-          <div>Loading...</div>
+          <div className="col-span-full flex justify-center text-white py-10">Loading...</div>
         ) : (
           listDish?.map((item) => <MenuCard key={item.id} item={item} />)
         )}

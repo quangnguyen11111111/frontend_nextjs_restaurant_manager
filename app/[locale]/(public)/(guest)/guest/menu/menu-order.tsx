@@ -8,10 +8,7 @@ import dishApiRequest from "@/apiRequest/dish";
 import {
   flattenCategoryTree,
   formatCurrency,
-  getDataCartFromLocalStorage,
   handleErrorApi,
-  removeDataCartFromLocalStorage,
-  setDataCartToLocalStorage,
 } from "@/lib/utils";
 import { useGetCategoryTreeQuery } from "@/queries/useCategory";
 import { DishResType } from "@/schemaValidations/dish.schema";
@@ -23,6 +20,7 @@ import { useGuestOrderMutation } from "@/queries/useGuest";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAppStore } from "@/components/query-provider";
+import { useCartStore } from "@/store/cartStore";
 
 export default function MenuOrder() {
   const { data: categoryTreeData, isLoading } = useGetCategoryTreeQuery();
@@ -32,41 +30,22 @@ export default function MenuOrder() {
   const { mutateAsync } = useGuestOrderMutation();
   const socket = useAppStore((state) => state.socket);
   const role = useAppStore((state) => state.role);
-  const [cart, setCart] = useState<{ dishId: number; quantity: number }[]>([]);
+  const cart = useCartStore((state) => state.cart);
+  const addToCart = useCartStore((state) => state.addToCart);
+  const clearCart = useCartStore((state) => state.clearCart);
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
-    const cartFromStorage = getDataCartFromLocalStorage();
-    setCart(cartFromStorage);
+    setMounted(true);
   }, []);
+
   const handleAddToCart = (dishId: number, quantity: number) => {
-    setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.dishId === dishId);
-      let nextCart = prevCart;
-
-      if (!existingItem) {
-        if (quantity > 0) {
-          nextCart = [...prevCart, { dishId, quantity }];
-        }
-      } else {
-        nextCart = prevCart
-          .map((item) =>
-            item.dishId === dishId
-              ? {
-                  ...item,
-                  quantity: item.quantity + quantity,
-                }
-              : item,
-          )
-          .filter((item) => item.quantity > 0);
-      }
-
-      setDataCartToLocalStorage(nextCart);
-      return nextCart;
-    });
+    addToCart(dishId, quantity);
   };
 
   const cartQuantity = useMemo(
-    () => cart.reduce((total, item) => total + item.quantity, 0),
-    [cart],
+    () => (mounted ? cart.reduce((total, item) => total + item.quantity, 0) : 0),
+    [cart, mounted],
   );
 
   const cartDishIds = useMemo(
@@ -130,8 +109,7 @@ export default function MenuOrder() {
         socket?.emit("new-order", res.payload.data);
       }
       toast.success("Đặt món thành công!");
-      setCart([]);
-      removeDataCartFromLocalStorage();
+      clearCart();
       router.push(`/guest/orders`);
     } catch (error) {
       handleErrorApi({

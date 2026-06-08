@@ -65,9 +65,16 @@ const orderTableColumns: ColumnDef<OrderItem>[] = [
           {guest && (
             <Popover>
               <PopoverTrigger>
-                <div>
-                  <span>{guest.name}</span>
-                  <span className='font-semibold'>(#{guest.id})</span>
+                <div className="flex flex-col items-start gap-1">
+                  <div>
+                    <span>{guest.name}</span>
+                    <span className='font-semibold ml-1'>(#{guest.id})</span>
+                  </div>
+                  {row.original.guest_count > 0 && (
+                    <div className="text-xs text-muted-foreground">
+                      Số khách: {row.original.guest_count} người
+                    </div>
+                  )}
                 </div>
               </PopoverTrigger>
               <PopoverContent className='w-[320px] sm:w-[440px]'>

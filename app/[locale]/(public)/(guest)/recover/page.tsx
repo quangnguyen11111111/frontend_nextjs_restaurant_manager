@@ -48,11 +48,11 @@ export default function RecoverOrderPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/20 p-4">
-      <Card className="max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center bg-[#0f2f2b] p-4 pt-24">
+      <Card className="max-w-md w-full bg-[#133631] border-emerald-800/50 text-white shadow-xl shadow-black/20">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Khôi Phục Theo Dõi Đơn</CardTitle>
-          <CardDescription className="text-center">
+          <CardTitle className="text-2xl text-center text-amber-500">Khôi Phục Theo Dõi Đơn</CardTitle>
+          <CardDescription className="text-center text-emerald-100/70">
             Nhập số điện thoại và Mã xác nhận PIN đã lưu để tiếp tục theo dõi món
           </CardDescription>
         </CardHeader>

@@ -109,10 +109,12 @@ export default function GuestSessionPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Mở bàn thành công!</AlertDialogTitle>
-            <AlertDialogDescription className="text-center space-y-4">
-              <div className="text-base">Mã PIN của bàn là:</div>
-              <div className="text-4xl font-bold tracking-widest text-primary">{generatedPin}</div>
-              <div className="text-sm">Hãy chia sẻ mã PIN này cho các thành viên khác tại bàn để họ có thể cùng tham gia gọi món.</div>
+            <AlertDialogDescription asChild className="text-center space-y-4">
+              <div>
+                <div className="text-base">Mã PIN của bàn là:</div>
+                <div className="text-4xl font-bold tracking-widest text-primary">{generatedPin}</div>
+                <div className="text-sm">Hãy chia sẻ mã PIN này cho các thành viên khác tại bàn để họ có thể cùng tham gia gọi món.</div>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

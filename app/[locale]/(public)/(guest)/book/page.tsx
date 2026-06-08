@@ -79,8 +79,8 @@ export default function BookReservationPage() {
 
   if (step === 2 && reservationSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-muted/20 p-4">
-        <Card className="max-w-md w-full">
+      <div className="min-h-screen flex items-center justify-center bg-[#0f2f2b] p-4 pt-24">
+        <Card className="max-w-md w-full bg-[#133631] border-emerald-800/50 text-white shadow-xl shadow-black/20">
           <CardHeader>
             <CardTitle className="text-2xl text-center text-green-600">Đặt Bàn Thành Công!</CardTitle>
           </CardHeader>
@@ -106,14 +106,14 @@ export default function BookReservationPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-muted/20 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0f2f2b] p-4 pt-24">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight">Đặt Bàn Trước</h1>
-          <p className="text-muted-foreground mt-2">Kiểm tra bàn trống và đặt chỗ ngay lập tức</p>
+          <h1 className="text-3xl font-bold tracking-tight text-amber-500">Đặt Bàn Trước</h1>
+          <p className="text-emerald-100/70 mt-2">Kiểm tra bàn trống và đặt chỗ ngay lập tức</p>
         </div>
 
-        <Card>
+        <Card className="bg-[#133631] border-emerald-800/50 text-white shadow-xl shadow-black/20">
           <CardHeader>
             <CardTitle>1. Kiểm tra sức chứa</CardTitle>
           </CardHeader>
@@ -149,7 +149,7 @@ export default function BookReservationPage() {
         </Card>
 
         {capacityData && availableCount > 0 && (
-          <Card>
+          <Card className="bg-[#133631] border-emerald-800/50 text-white shadow-xl shadow-black/20">
             <CardHeader>
               <CardTitle>2. Thông tin liên hệ</CardTitle>
             </CardHeader>

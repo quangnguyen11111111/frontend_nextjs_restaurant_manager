@@ -1,7 +1,7 @@
 "use client";
-import { Menu, Package2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Menu, Search, User, MapPin, ShoppingCart } from "lucide-react";
 import Link from "next/link";
-import DarkModeToggle from "../share/dark-mode-toggle";
 import {
   Sheet,
   SheetContent,
@@ -9,11 +9,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "../ui/sheet";
-import { Button, buttonVariants } from "../ui/button";
+import { Button } from "../ui/button";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { cn, handleErrorApi } from "@/lib/utils";
-import { useEffect, useState } from "react";
-import { RoleType } from "@/types/jwt.types";
 import { Role } from "@/constants/type";
 import {
   AlertDialog,
@@ -26,48 +24,56 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useTranslations } from "next-intl";
 import { useAppStore } from "../query-provider";
+import { useCartStore } from "@/store/cartStore";
 import { useLogoutMutation } from "@/queries/useAuth";
-import { useRouter } from "next/navigation";
-const menuItems: {
-  title: string;
-  href: string;
-  role?: RoleType[];
-  hideWhenLogin?: boolean;
-}[] = [
-  {
-    title: "home",
-    href: "/",
-  },
-  {
-    title: "menu",
-    href: "/guest/menu",
-    role: [Role.Guest],
-  },
-  {
-    title: "orders",
-    href: "/guest/orders",
-    role: [Role.Guest],
-  },
-  {
-    title: "login",
-    href: "/login",
-    hideWhenLogin: true,
-  },
-  {
-    title: "manage",
-    href: "/manage/dashboard",
-    role: [Role.Owner, Role.Employee],
-  },
+import { usePathname, useRouter } from "next/navigation";
+
+const menuItems = [
+  { title: "Trang chủ", href: "/" },
+  { title: "Giới thiệu", href: "/about" },
+  { title: "Menu", href: "/guest/menu" },
+  { title: "Món ăn nổi bật", href: "/#highlights" },
+  { title: "Tin tức", href: "/#news" },
+  { title: "Quản lý", href: "/manage/dashboard", role: [Role.Owner, Role.Employee] },
 ];
+
 function NavItems({ className }: { className?: string }) {
-  const t = useTranslations("NavItem");
+  const role = useAppStore((state) => state.role);
+  
+  return (
+    <>
+      {menuItems.map((item) => {
+        const isAuth = item.role && role && item.role.includes(role as any);
+        const canShow = !item.role || isAuth;
+        if (canShow) {
+          return (
+            <Link href={item.href} key={item.href} className={cn("text-sm font-semibold uppercase tracking-wider text-white/90 hover:text-amber-500 transition-colors", className)}>
+              {item.title}
+            </Link>
+          );
+        }
+        return null;
+      })}
+    </>
+  );
+}
+
+const Header = () => {
+  const pathname = usePathname();
+  const isHome = pathname === "/" || pathname === "/en" || pathname === "/vi";
   const role = useAppStore((state) => state.role);
   const setRole = useAppStore((state) => state.setRole);
   const disconnectSocket = useAppStore((state) => state.disconnectSocket);
   const logoutMutation = useLogoutMutation();
   const router = useRouter();
+  
+  const cartQuantity = useCartStore((state) => state.getTotalQuantity());
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const logout = async () => {
     if (logoutMutation.isPending) return;
     try {
@@ -76,101 +82,125 @@ function NavItems({ className }: { className?: string }) {
       disconnectSocket();
       router.push("/");
     } catch (error: any) {
-      handleErrorApi({
-        error,
-      });
+      handleErrorApi({ error });
     }
   };
+
   return (
-    <>
-      {menuItems.map((item) => {
-        // Trường hợp đăng nhập thì chỉ hiển thị menu đăng nhập
-        const isAuth = item.role && role && item.role.includes(role);
-        // Trường hợp menu item có thể hiển thị dù cho đã đăng nhập hay chưa
-        const canShow =
-          (item.role === undefined && !item.hideWhenLogin) ||
-          (!role && item.hideWhenLogin);
-        if (isAuth || canShow) {
-          return (
-            <Link href={item.href} key={item.href} className={className}>
-              {t(item.title as any)}
-            </Link>
-          );
-        }
-        return null;
-      })}
-      {role && (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <div className={cn(className, "cursor-pointer")}>{t("logout")}</div>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                {t("logoutDialog.logoutQuestion")}
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                {t("logoutDialog.logoutConfirm")}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>
-                {t("logoutDialog.logoutCancel")}
-              </AlertDialogCancel>
-              <AlertDialogAction onClick={logout}>OK</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+    <header
+      className={cn(
+        "z-50 w-full transition-all duration-300",
+        isHome ? "absolute top-0 left-0 bg-transparent" : "sticky top-0 bg-[#0f2f2b] shadow-md"
       )}
-    </>
-  );
-}
-
-const Header = () => {
-  return (
-    <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50">
-      <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-        <Link
-          href="#"
-          className="flex items-center gap-2 text-lg font-semibold md:text-base"
-        >
-          <Package2 className="h-6 w-6" />
-          <span className="sr-only">Big boy</span>
+    >
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 md:px-6">
+        {/* Left: Logo */}
+        <Link href="/" className="flex items-center gap-2">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#d4a373] text-[#0f2f2b]">
+            <span className="font-serif text-xl font-bold italic">Dola</span>
+          </div>
+          <span className="font-serif text-2xl font-bold italic text-white hidden sm:block">
+            Restaurant
+          </span>
         </Link>
-        <NavItems className="text-muted-foreground transition-colors hover:text-foreground shrink-0" />
-      </nav>
-      <div className="shrink-0 md:hidden flex items-center">
-        <Sheet>
-          <SheetTrigger
-            className={buttonVariants({ variant: "outline", size: "icon" })}
-          >
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle navigation menu</span>
-          </SheetTrigger>
-          <SheetContent side="left">
-            <SheetHeader>
-              <VisuallyHidden>
-                <SheetTitle>Menu</SheetTitle>
-              </VisuallyHidden>
-            </SheetHeader>
-            <nav className="grid gap-6 text-lg font-medium">
-              <Link
-                href="#"
-                className="flex items-center gap-2 text-lg font-semibold"
-              >
-                <Package2 className="h-6 w-6" />
-                <span className="">Big boy</span>
-              </Link>
 
-              <NavItems className="text-muted-foreground transition-colors hover:text-foreground" />
-            </nav>
-          </SheetContent>
-        </Sheet>
-      </div>
-      <div className="ml-auto">
-        <DarkModeToggle />
+        {/* Center: Desktop Nav */}
+        <nav className="hidden items-center gap-8 md:flex">
+          <NavItems />
+        </nav>
+
+        {/* Right: Actions */}
+        <div className="flex items-center gap-4">
+          <div className="hidden items-center gap-4 text-white/90 sm:flex">
+            <button className="hover:text-amber-500 transition-colors">
+              <Search className="h-5 w-5" />
+            </button>
+            <Link href="/cart" className="hover:text-amber-500 transition-colors relative">
+              <ShoppingCart className="h-5 w-5" />
+              {mounted && cartQuantity > 0 && (
+                <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white">
+                  {cartQuantity}
+                </span>
+              )}
+            </Link>
+            {role ? (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button className="hover:text-amber-500 transition-colors">
+                    <User className="h-5 w-5" />
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Đăng xuất</AlertDialogTitle>
+                    <AlertDialogDescription>Bạn có chắc chắn muốn đăng xuất không?</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Hủy</AlertDialogCancel>
+                    <AlertDialogAction onClick={logout}>Đồng ý</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            ) : (
+              <Link href="/login" className="hover:text-amber-500 transition-colors">
+                <User className="h-5 w-5" />
+              </Link>
+            )}
+            <button className="hover:text-amber-500 transition-colors">
+              <MapPin className="h-5 w-5" />
+            </button>
+          </div>
+
+          {!role && (
+            <div className="flex items-center gap-2">
+              <Link href="/recover">
+                <Button variant="outline" className="rounded-full px-6 font-semibold text-amber-500 border-amber-500 hover:bg-amber-500 hover:text-white transition-colors">
+                  Bạn đã có hoá đơn
+                </Button>
+              </Link>
+              <Link href="/book">
+                <Button className="rounded-full bg-[#ff9a00] px-6 font-semibold text-white hover:bg-orange-600 transition-colors border-0">
+                  Đặt bàn
+                </Button>
+              </Link>
+            </div>
+          )}
+
+          {/* Mobile Menu */}
+          <div className="md:hidden">
+            <Sheet>
+              <SheetTrigger className="text-white hover:text-amber-500">
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Toggle menu</span>
+              </SheetTrigger>
+              <SheetContent side="right" className="bg-[#0f2f2b] text-white border-none">
+                <SheetHeader>
+                  <VisuallyHidden>
+                    <SheetTitle>Menu</SheetTitle>
+                  </VisuallyHidden>
+                </SheetHeader>
+                <nav className="mt-8 flex flex-col gap-6">
+                  <NavItems className="text-lg" />
+                  <div className="mt-4 flex gap-6 text-white/90">
+                    <button><Search className="h-6 w-6" /></button>
+                    <Link href="/cart" className="relative hover:text-amber-500 transition-colors">
+                      <ShoppingCart className="h-6 w-6" />
+                      {mounted && cartQuantity > 0 && (
+                        <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white">
+                          {cartQuantity}
+                        </span>
+                      )}
+                    </Link>
+                    <Link href="/login" className="hover:text-amber-500 transition-colors"><User className="h-6 w-6" /></Link>
+                  </div>
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
       </div>
     </header>
   );
 };
+
 export default Header;

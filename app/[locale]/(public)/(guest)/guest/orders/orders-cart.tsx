@@ -18,7 +18,7 @@ import { useTranslations } from "next-intl";
 export default function OrdersCart() {
   const t = useTranslations("OrderStatus");
   const { data, refetch } = useGuestGetOrderListQuery();
-  const orders = useMemo(() => data?.payload.data ?? [], [data]);
+  const orders =  data?.payload.data ?? []
   
   const socket = useAppStore((state) => state.socket);
   

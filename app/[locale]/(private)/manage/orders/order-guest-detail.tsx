@@ -17,6 +17,17 @@ import { handleErrorApi } from '@/lib/utils'
 import EditOrder from './edit-order'
 import { useAppStore } from '@/components/query-provider'
 import { OrderStateFactory } from '@/lib/patterns/state/OrderState'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type Guest = NonNullable<GetOrdersResType['data'][0]['guest']>
 type Order = GetOrdersResType['data'][0]
@@ -154,17 +165,37 @@ export default function OrderGuestDetail({ guest, order }: { guest: Guest; order
       </div>
 
       <div>
-        <Button 
-          className='w-full' 
-          size={'sm'} 
-          variant={'secondary'} 
-          disabled={ordersFilterToPurchase.length === 0 || !orderState.canPay() || details.some(d => d.status === OrderStatus.Pending || d.status === OrderStatus.Processing)}
-          onClick={pay}
-        >
-          {details.some(d => d.status === OrderStatus.Pending || d.status === OrderStatus.Processing) 
-            ? 'Chưa thể thanh toán do có món đang xử lý' 
-            : `Thanh toán tất cả (${ordersFilterToPurchase.length} đơn)`}
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button 
+              className='w-full' 
+              size={'sm'} 
+              variant={'secondary'} 
+              disabled={ordersFilterToPurchase.length === 0 || !orderState.canPay() || details.some(d => d.status === OrderStatus.Pending || d.status === OrderStatus.Processing)}
+            >
+              {details.some(d => d.status === OrderStatus.Pending || d.status === OrderStatus.Processing) 
+                ? 'Chưa thể thanh toán do có món đang xử lý' 
+                : `Thanh toán tất cả (${ordersFilterToPurchase.length} đơn)`}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Xác nhận thanh toán</AlertDialogTitle>
+              <AlertDialogDescription>
+                Bạn có chắc chắn muốn thanh toán tất cả các món đã giao cho khách hàng này không?
+                Tổng tiền cần thanh toán là {formatCurrency(
+                  ordersFilterToPurchase.reduce((acc, detail) => {
+                    return acc + detail.quantity * detail.dish_price
+                  }, 0)
+                )}. Hành động này không thể hoàn tác dễ dàng.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Hủy</AlertDialogCancel>
+              <AlertDialogAction onClick={pay}>Đồng ý thanh toán</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
       
       <EditOrder

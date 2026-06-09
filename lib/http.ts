@@ -1,10 +1,12 @@
 import authApiRequest from "@/apiRequest/auth";
+import guestApiRequest from "../apiRequest/guest";
 import envConfig from "@/config";
 import { normalizePath } from "@/lib/utils";
 import {
   LoginResType,
   RefreshTokenResType,
 } from "@/schemaValidations/auth.schema";
+import { GuestLoginResType } from "@/schemaValidations/guest.schema";
 import { redirect } from "next/navigation";
 import { toast } from "sonner";
 
@@ -124,19 +126,38 @@ const request = async <Response>(
     } else if (res.status === AUTHENTICATION_ERROR_STATUS) {
       const errorCode = (payload as any)?.code;
 
+      const isGuestRequest =
+        normalizedUrl.startsWith("api/guest/") ||
+        normalizedUrl.startsWith("api/guests/");
+
+      const staffAuthEndpoints = [
+        "api/auth/login",
+        "api/auth/logout",
+        "api/auth/refresh-token",
+      ];
+
+      const guestAuthEndpoints = [
+        "api/guest/auth/login",
+        "api/guest/auth/logout",
+        "api/guest/auth/refresh-token",
+        "api/guests/auth/login",
+        "api/guests/auth/logout",
+        "api/guests/auth/refresh-token",
+      ];
+
       const shouldTryRefreshToken =
         isClient &&
         errorCode === "TOKEN_EXPIRED" &&
         !isRetryAfterRefresh &&
-        ![
-          "api/auth/login",
-          "api/auth/logout",
-          "api/auth/refresh-token",
-        ].includes(normalizedUrl);
+        !(isGuestRequest ? guestAuthEndpoints : staffAuthEndpoints).includes(
+          normalizedUrl,
+        );
 
       if (shouldTryRefreshToken) {
         try {
-          const refreshRes = await authApiRequest.cRefreshToken();
+          const refreshRes = isGuestRequest
+            ? await guestApiRequest.refreshToken()
+            : await authApiRequest.cRefreshToken();
           const refreshData = (refreshRes.payload as any)?.data;
           if (!refreshData?.accessToken || !refreshData?.refreshToken) {
             throw new Error("Refresh token request failed");
@@ -151,15 +172,20 @@ const request = async <Response>(
       }
 
       const baseLogoutRequest = async () => {
-        await authApiRequest.cLogout();
+        if (isGuestRequest) {
+          await guestApiRequest.logout();
+        } else {
+          await authApiRequest.cLogout();
+        }
         toast.error("Gọi API thất bại, vui lòng đăng nhập lại");
       };
+      const redirectPath = isGuestRequest ? "/guest/menu" : "/login";
       if (isClient) {
         await baseLogoutRequest();
-        location.href = "/login";
+        location.href = redirectPath;
       } else {
         await baseLogoutRequest();
-        redirect("/login");
+        redirect(redirectPath);
       }
     } else {
       throw new HttpError(data);
@@ -167,6 +193,18 @@ const request = async <Response>(
   }
   // Đảm bảo logic dưới đây chỉ chạy ở phía client (browser)
   if (isClient) {
+    const guestLoginEndpoints = [
+      "api/guest/auth/login",
+      "api/guests/auth/login",
+    ];
+    const guestRefreshEndpoints = [
+      "api/guest/auth/refresh-token",
+      "api/guests/auth/refresh-token",
+    ];
+    const guestLogoutEndpoints = [
+      "api/guest/auth/logout",
+      "api/guests/auth/logout",
+    ];
     if (normalizedUrl === "api/auth/login") {
       const { accessToken, refreshToken } = (payload as LoginResType).data;
       localStorage.setItem("accessToken", accessToken);
@@ -177,6 +215,18 @@ const request = async <Response>(
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
     } else if (normalizedUrl === "api/auth/logout") {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+    } else if (guestLoginEndpoints.includes(normalizedUrl)) {
+      const { accessToken, refreshToken } = (payload as GuestLoginResType).data;
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
+    } else if (guestRefreshEndpoints.includes(normalizedUrl)) {
+      const { accessToken, refreshToken } = (payload as RefreshTokenResType)
+        .data;
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
+    } else if (guestLogoutEndpoints.includes(normalizedUrl)) {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
     }

@@ -4,8 +4,7 @@ import { twMerge } from "tailwind-merge";
 import { EntityError } from "./http";
 import { toast } from "sonner";
 import authApiRequest from "@/apiRequest/auth";
-import jwt from "jsonwebtoken";
-import { redirect } from "next/navigation";
+
 import {
   CategoryStatus,
   DishStatus,
@@ -18,6 +17,8 @@ import { TokenPayload } from "@/types/jwt.types";
 import { jwtDecode } from "jwt-decode";
 import { io } from "socket.io-client";
 import guestApiRequest from "@/apiRequest/guest";
+import { format } from "date-fns";
+import { BookX, CookingPot, HandCoins, Loader, Truck } from 'lucide-react'
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -224,4 +225,49 @@ export const generateSocketInstace = (accessToken: string) => {
       Authorization: `Bearer ${accessToken}`,
     },
   });
+};
+
+export const setDataCartToLocalStorage = (
+  cart: { dishId: number; quantity: number }[],
+) => isBrowser && localStorage.setItem("cart", JSON.stringify(cart));
+export const getDataCartFromLocalStorage = (): {
+  dishId: number;
+  quantity: number;
+}[] =>
+  isBrowser && localStorage.getItem("cart")
+    ? JSON.parse(localStorage.getItem("cart") as string)
+    : [];
+export const removeDataCartFromLocalStorage = () =>
+  isBrowser && localStorage.removeItem("cart");
+
+export function removeAccents(str: string) {
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D");
+}
+
+export const simpleMatchText = (fullText: string, matchText: string) => {
+  return removeAccents(fullText.toLowerCase()).includes(
+    removeAccents(matchText.trim().toLowerCase()),
+  );
+};
+export const formatDateTimeToLocaleString = (date: string | Date) => {
+  return format(
+    date instanceof Date ? date : new Date(date),
+    "HH:mm:ss dd/MM/yyyy",
+  );
+};
+
+export const formatDateTimeToTimeString = (date: string | Date) => {
+  return format(date instanceof Date ? date : new Date(date), "HH:mm:ss");
+};
+
+export const OrderStatusIcon = {
+  [OrderStatus.Pending]: Loader,
+  [OrderStatus.Processing]: CookingPot,
+  [OrderStatus.Rejected]: BookX,
+  [OrderStatus.Delivered]: Truck,
+  [OrderStatus.Paid]: HandCoins,
 };

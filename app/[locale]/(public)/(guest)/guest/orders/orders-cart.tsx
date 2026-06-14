@@ -94,10 +94,13 @@ export default function OrdersCart() {
     };
   }, [refetch, socket]);
   return (
-    <>
+    <div className="flex flex-col gap-4 relative">
+      {orders.length === 0 && (
+        <div className="text-center text-white/50 py-10 font-medium">Bạn chưa có đơn hàng nào.</div>
+      )}
       {orders.map((order, index) => (
-        <div key={order.id} className="flex gap-4">
-          <div className="text-sm font-semibold">{index + 1}</div>
+        <div key={order.id} className="flex gap-4 items-center bg-[#1a403a]/50 p-4 rounded-xl border border-white/5 hover:border-[#d4a373]/50 transition-colors shadow-sm">
+          <div className="text-lg font-bold text-[#d4a373] w-6 text-center">{index + 1}</div>
           <div className="flex-shrink-0 relative">
             {order.dish_image && (
               <Image
@@ -106,31 +109,35 @@ export default function OrdersCart() {
                 height={100}
                 width={100}
                 quality={100}
-                className="object-cover w-[80px] h-[80px] rounded-md"
+                className="object-cover w-[80px] h-[80px] rounded-lg shadow-md border border-white/10"
               />
             )}
           </div>
-          <div className="space-y-1">
-            <h3 className="text-sm">{order.dish_name}</h3>
-            <div className="text-xs font-semibold">
-              {formatCurrency(order.dish_price)} x{" "}
-              <Badge className="px-1">{order.quantity}</Badge>
+          <div className="flex-1 space-y-2">
+            <h3 className="text-base md:text-lg font-semibold text-white">{order.dish_name}</h3>
+            <div className="text-sm text-white/80 flex items-center gap-2">
+              {formatCurrency(order.dish_price)} <span className="text-[#ff9a00]">x</span>{" "}
+              <Badge className="px-2 bg-[#d4a373] text-[#0f2f2b] hover:bg-[#d4a373]/90 border-none font-bold">{order.quantity}</Badge>
             </div>
           </div>
           <div className="flex-shrink-0 ml-auto flex justify-center items-center">
-            <Badge variant={"outline"}>
+            <Badge variant={"outline"} className="border-[#ff9a00] text-[#ff9a00] bg-[#ff9a00]/10 px-3 py-1 font-medium shadow-inner">
               {t(order.status as any)}
             </Badge>
           </div>
         </div>
       ))}
 
-      <div className="sticky bottom-0 ">
-        <div className="w-full flex space-x-4 text-xl font-semibold">
-          <span>{orders.length > 0 && (orders[0] as any).order?.status === 'Paid' ? 'Đã thanh toán' : 'Đơn chưa thanh toán'} · {waitingForPaying.quantity} món</span>
-          <span>{formatCurrency(waitingForPaying.price)}</span>
+      {orders.length > 0 && (
+        <div className="sticky bottom-4 mt-6 z-10">
+          <div className="w-full flex items-center justify-between p-6 rounded-xl bg-[#d4a373] text-[#0f2f2b] shadow-2xl border border-[#c19263]">
+            <span className="text-lg md:text-xl font-bold font-serif">
+              {orders.length > 0 && (orders[0] as any).order?.status === 'Paid' ? 'Đã thanh toán' : 'Tổng cộng'} ({waitingForPaying.quantity} món)
+            </span>
+            <span className="text-xl md:text-2xl font-bold">{formatCurrency(waitingForPaying.price)}</span>
+          </div>
         </div>
-      </div>
-    </>
+      )}
+    </div>
   );
 }

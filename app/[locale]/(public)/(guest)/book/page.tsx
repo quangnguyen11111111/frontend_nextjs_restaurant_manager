@@ -139,10 +139,24 @@ export default function BookReservationPage() {
             </form>
 
             {capacityData && (
-              <div className={`mt-4 p-4 rounded-md text-center ${availableCount > 0 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                {availableCount > 0 
-                  ? `Tuyệt vời! Còn ${availableCount} bàn phù hợp cho ${guestCount} người.`
-                  : "Rất tiếc! Không còn bàn trống trong khung giờ này."}
+              <div className="mt-4 space-y-2">
+                <div className={`p-4 rounded-md text-center ${availableCount > 0 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                  {availableCount > 0 
+                    ? `Tuyệt vời! Nhà hàng có thể bố trí chỗ ngồi phù hợp cho ${guestCount} người.`
+                    : "Rất tiếc! Không còn bàn trống trong khung giờ này."}
+                </div>
+                
+                {availableCount > 0 && capacityData?.payload.data.is_tight_fit && (
+                  <div className="p-3 rounded-md bg-yellow-500/20 text-yellow-200 text-sm border border-yellow-500/50">
+                    ⚠️ <strong>Lưu ý:</strong> Vì số lượng bàn trống có hạn, nhà hàng sẽ bố trí chỗ ngồi hơi chật một chút so với tiêu chuẩn. Mong quý khách thông cảm!
+                  </div>
+                )}
+
+                {availableCount > 0 && capacityData?.payload.data.requires_merge && (
+                  <div className="p-3 rounded-md bg-blue-500/20 text-blue-200 text-sm border border-blue-500/50">
+                    ℹ️ <strong>Ghép bàn:</strong> Nhà hàng sẽ tiến hành ghép các bàn lại với nhau để phục vụ đủ số lượng khách của bạn.
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

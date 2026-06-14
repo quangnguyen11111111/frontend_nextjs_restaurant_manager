@@ -90,6 +90,12 @@ export function TablesDialog({ onChoose, children }: { onChoose: (table: TableIt
     })
   }, [table])
 
+  useEffect(() => {
+    if (open) {
+      tableListQuery.refetch()
+    }
+  }, [open, tableListQuery])
+
   const choose = (table: TableItem) => {
     onChoose(table)
     setOpen(false)

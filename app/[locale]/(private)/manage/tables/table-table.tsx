@@ -81,9 +81,30 @@ export const columns: ColumnDef<TableItem>[] = [
   },
   {
     accessorKey: "capacity",
-    header: "Sức chứa",
+    header: "Sức chứa (Mặc định)",
     cell: ({ row }) => (
       <div className="capitalize">{row.getValue("capacity")}</div>
+    ),
+  },
+  {
+    accessorKey: "max_capacity",
+    header: "Sức chứa (Tối đa)",
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("max_capacity") ?? "-"}</div>
+    ),
+  },
+  {
+    accessorKey: "group_id",
+    header: "Nhóm ghép",
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("group_id") ?? "-"}</div>
+    ),
+  },
+  {
+    accessorKey: "group_order",
+    header: "Thứ tự ghép",
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("group_order") ?? "-"}</div>
     ),
   },
   {

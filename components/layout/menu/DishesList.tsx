@@ -51,11 +51,11 @@ export default function DishesList({
           return (
             <article
               key={dish.id}
-              className="group flex h-full flex-col overflow-hidden rounded-3xl border border-white/20 bg-white/95 text-slate-900 shadow-[0_20px_40px_rgba(7,17,15,0.18)] transition hover:-translate-y-1"
+              className="group flex h-full flex-col overflow-hidden rounded-3xl border border-white/20 bg-white/95 text-slate-900 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
             >
               <div className="relative overflow-hidden">
                 {dish.status === DishStatus.Unavailable && (
-                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 text-sm font-semibold text-gray-500">
+                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 backdrop-blur-sm text-sm md:text-base font-bold text-gray-600">
                     Hết hàng
                   </div>
                 )}
@@ -63,25 +63,25 @@ export default function DishesList({
                   src={dish.image}
                   alt={dish.name}
                   loading="lazy"
-                  className="h-44 w-full object-cover transition duration-500 group-hover:scale-105"
+                  className="h-44 sm:h-48 md:h-52 lg:h-48 xl:h-56 w-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
-                <div className="absolute -bottom-5 left-1/2 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full bg-amber-500 text-white shadow">
-                  <Heart className="h-4 w-4" />
+                <div className="absolute -bottom-5 left-1/2 flex h-10 w-10 md:h-12 md:w-12 -translate-x-1/2 items-center justify-center rounded-full bg-amber-500 text-white shadow-lg transition-transform duration-300 group-hover:-translate-y-1">
+                  <Heart className="h-4 w-4 md:h-5 md:w-5" />
                 </div>
               </div>
 
-              <div className="flex flex-1 flex-col items-center gap-2 px-4 pb-5 pt-8 text-center">
-                <h4 className="text-sm font-semibold leading-snug text-slate-900 line-clamp-2">
+              <div className="flex flex-1 flex-col items-center gap-2 md:gap-3 px-4 md:px-5 pb-6 pt-8 md:pt-10 text-center">
+                <h4 className="text-base md:text-lg font-bold leading-snug text-slate-900 line-clamp-2">
                   {dish.name}
                 </h4>
-                <div className="flex items-center gap-2 text-sm font-bold text-amber-600">
+                <div className="flex items-center gap-2 text-base md:text-lg font-bold text-amber-600">
                   <span>{formatCurrency(dish.price)}</span>
                 </div>
                 <button
                   className={cn(
-                    "mt-auto rounded-full px-4 py-2 text-xs font-semibold text-white shadow transition",
-                    "bg-amber-500 hover:bg-amber-400",
-                    "disabled:cursor-not-allowed disabled:bg-gray-300 disabled:opacity-60 disabled:hover:bg-gray-300",
+                    "mt-auto rounded-full px-5 py-2 md:px-6 text-sm md:text-[14px] font-bold text-white shadow-md transition-all duration-300",
+                    "bg-amber-500 hover:bg-amber-400 hover:shadow-lg active:scale-95",
+                    "disabled:cursor-not-allowed disabled:bg-gray-300 disabled:opacity-60 disabled:hover:bg-gray-300 disabled:hover:shadow-md disabled:active:scale-100",
                   )}
                   onClick={() => handleAddToCart(dish.id, 1)}
                   disabled={dish.status === DishStatus.Unavailable}

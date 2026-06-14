@@ -204,9 +204,9 @@ export default function MenuOrder() {
                       return (
                         <div
                           key={item.dishId}
-                          className="flex items-center gap-3"
+                          className="flex items-center gap-3 md:gap-4 border-b border-slate-100 pb-3 last:border-0"
                         >
-                          <div className="h-12 w-12 overflow-hidden rounded-lg bg-slate-100">
+                          <div className="h-12 w-12 md:h-16 md:w-16 flex-shrink-0 overflow-hidden rounded-lg bg-slate-100 shadow-sm border border-slate-200/50">
                             {dish ? (
                               <img
                                 src={dish.image}
@@ -218,29 +218,29 @@ export default function MenuOrder() {
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-semibold">
+                            <p className="truncate text-sm md:text-base font-bold text-slate-800">
                               {dish ? dish.name : "Đang tải món ăn..."}
                             </p>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs md:text-sm font-medium text-amber-600">
                               {item.quantity} x{" "}
                               {dish ? formatCurrency(dish.price) : "..."}
                             </p>
                           </div>
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-2">
                             <button
                               type="button"
-                              className="h-6 w-6 rounded-full border border-amber-200 text-xs font-semibold text-amber-700 transition hover:border-amber-400 hover:text-amber-600"
+                              className="flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-full border-2 border-amber-200 text-sm font-bold text-amber-700 transition-colors hover:border-amber-500 hover:bg-amber-50 hover:text-amber-600 active:scale-90"
                               onClick={() => handleAddToCart(item.dishId, -1)}
                               aria-label="Giam so luong"
                             >
                               -
                             </button>
-                            <span className="min-w-6 text-center text-xs font-semibold text-emerald-900">
+                            <span className="min-w-[20px] md:min-w-[24px] text-center text-sm md:text-base font-bold text-emerald-900">
                               {item.quantity}
                             </span>
                             <button
                               type="button"
-                              className="h-6 w-6 rounded-full border border-amber-200 text-xs font-semibold text-amber-700 transition hover:border-amber-400 hover:text-amber-600"
+                              className="flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-full border-2 border-amber-200 text-sm font-bold text-amber-700 transition-colors hover:border-amber-500 hover:bg-amber-50 hover:text-amber-600 active:scale-90"
                               onClick={() => handleAddToCart(item.dishId, 1)}
                               aria-label="Tang so luong"
                             >
@@ -253,12 +253,12 @@ export default function MenuOrder() {
                   )}
                 </div>
 
-                <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3 text-sm font-semibold text-emerald-900">
+                <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-4 text-base md:text-lg font-semibold text-emerald-900">
                   <span>Tổng tiền</span>
-                  <span>{formatCurrency(cartTotal)}</span>
+                  <span className="text-amber-600">{formatCurrency(cartTotal)}</span>
                 </div>
                 <Button
-                  className="mt-3 w-full bg-amber-500 text-white hover:bg-amber-400"
+                  className="mt-4 w-full h-12 md:h-14 text-base md:text-lg font-bold bg-amber-500 text-white hover:bg-amber-400 shadow-md transition-transform active:scale-95"
                   onClick={handleOrder}
                   disabled={cartItems.length === 0 || isMiniCartLoading}
                 >
@@ -267,9 +267,9 @@ export default function MenuOrder() {
               </div>
             </div>
 
-            <Button className="h-12 w-full justify-between bg-amber-500 text-base text-white hover:bg-amber-400">
+            <Button className="h-14 w-full justify-between bg-amber-500 text-base md:text-lg font-bold text-white hover:bg-amber-400 shadow-lg transition-transform active:scale-95">
               <span>Giỏ hàng</span>
-              <span className="rounded-full bg-amber-400 px-2 py-0.5 text-amber-900">
+              <span className="flex items-center justify-center rounded-full bg-amber-100 text-amber-900 px-3 py-1 font-bold">
                 {cartQuantity}
               </span>
             </Button>

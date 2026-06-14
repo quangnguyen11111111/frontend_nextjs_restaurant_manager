@@ -29,26 +29,38 @@ import { useCartStore } from "@/store/cartStore";
 import { useLogoutMutation } from "@/queries/useAuth";
 import { usePathname, useRouter } from "next/navigation";
 
-const menuItems = [
+type MenuItem = {
+  title: string;
+  href: string;
+  role?: any[];
+};
+
+const menuItems: MenuItem[] = [
   { title: "Trang chủ", href: "/" },
   { title: "Giới thiệu", href: "/about" },
   { title: "Menu", href: "/guest/menu" },
+  { title: "Đơn hàng", href: "/guest/orders", role: [Role.Guest] },
   { title: "Món ăn nổi bật", href: "/#highlights" },
   { title: "Tin tức", href: "/#news" },
   { title: "Quản lý", href: "/manage/dashboard", role: [Role.Owner, Role.Employee] },
 ];
 
-function NavItems({ className }: { className?: string }) {
+function NavItems({ className, onClick }: { className?: string; onClick?: () => void }) {
   const role = useAppStore((state) => state.role);
   
   return (
     <>
       {menuItems.map((item) => {
-        const isAuth = item.role && role && item.role.includes(role as any);
+        const isAuth = item.role && role && item.role.includes(role);
         const canShow = !item.role || isAuth;
         if (canShow) {
           return (
-            <Link href={item.href} key={item.href} className={cn("text-sm font-semibold uppercase tracking-wider text-white/90 hover:text-amber-500 transition-colors", className)}>
+            <Link 
+              href={item.href} 
+              key={item.href} 
+              onClick={onClick}
+              className={cn("text-sm font-semibold uppercase tracking-wider text-white/90 hover:text-amber-500 transition-colors", className)}
+            >
               {item.title}
             </Link>
           );
@@ -70,6 +82,8 @@ const Header = () => {
   
   const cartQuantity = useCartStore((state) => state.getTotalQuantity());
   const [mounted, setMounted] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -168,30 +182,34 @@ const Header = () => {
 
           {/* Mobile Menu */}
           <div className="md:hidden">
-            <Sheet>
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger className="text-white hover:text-amber-500">
                 <Menu className="h-6 w-6" />
                 <span className="sr-only">Toggle menu</span>
               </SheetTrigger>
-              <SheetContent side="right" className="bg-[#0f2f2b] text-white border-none">
+              <SheetContent side="right" className="bg-[#0f2f2b] text-white border-none w-[280px]">
                 <SheetHeader>
                   <VisuallyHidden>
                     <SheetTitle>Menu</SheetTitle>
                   </VisuallyHidden>
                 </SheetHeader>
-                <nav className="mt-8 flex flex-col gap-6">
-                  <NavItems className="text-lg" />
+                <nav className="mt-6 flex flex-col gap-4 px-6">
+                  <NavItems className="text-sm" onClick={() => setIsMobileMenuOpen(false)} />
                   <div className="mt-4 flex gap-6 text-white/90">
-                    <button><Search className="h-6 w-6" /></button>
-                    <Link href="/cart" className="relative hover:text-amber-500 transition-colors">
-                      <ShoppingCart className="h-6 w-6" />
+                    <button onClick={() => setIsMobileMenuOpen(false)}>
+                      <Search className="h-5 w-5" />
+                    </button>
+                    <Link href="/cart" onClick={() => setIsMobileMenuOpen(false)} className="relative hover:text-amber-500 transition-colors">
+                      <ShoppingCart className="h-5 w-5" />
                       {mounted && cartQuantity > 0 && (
                         <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white">
                           {cartQuantity}
                         </span>
                       )}
                     </Link>
-                    <Link href="/login" className="hover:text-amber-500 transition-colors"><User className="h-6 w-6" /></Link>
+                    <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-amber-500 transition-colors">
+                      <User className="h-5 w-5" />
+                    </Link>
                   </div>
                 </nav>
               </SheetContent>

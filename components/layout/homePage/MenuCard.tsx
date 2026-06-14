@@ -12,9 +12,9 @@ export default function MenuCard({
 }) {
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden bg-[#e8edea] text-slate-900 transition-all hover:shadow-xl hover:-translate-y-1">
-      <div className="relative overflow-hidden aspect-square p-2">
-        <div className="w-full h-full relative overflow-hidden rounded-md bg-white">
+    <article className="group flex h-full flex-col overflow-hidden bg-[#e8edea] rounded-2xl text-slate-900 transition-all hover:shadow-2xl shadow-md hover:-translate-y-1">
+      <div className="relative overflow-hidden aspect-square">
+        <div className="w-full h-full relative overflow-hidden bg-white">
           <img
             src={item.image}
             alt={item.name}
@@ -30,16 +30,16 @@ export default function MenuCard({
         </button>
       </div>
 
-      <div className="flex flex-1 flex-col items-center gap-1 px-4 pb-5 pt-3 text-center bg-[#e8edea]">
-        <h4 className="text-sm font-bold leading-snug text-[#0f2f2b]">
+      <div className="flex flex-1 flex-col items-center justify-between gap-1 px-3 md:px-4 pb-4 md:pb-5 pt-3 text-center bg-[#e8edea]">
+        <h4 className="text-sm md:text-base font-bold leading-snug text-[#0f2f2b] line-clamp-2 min-h-[40px] flex items-center justify-center">
           {item.name}
         </h4>
         <div className="flex items-center gap-2 mt-1">
-          <p className="text-sm font-bold text-red-600">
+          <p className="text-sm md:text-base font-bold text-red-600">
             {formatCurrency(item.price)}
           </p>
         </div>
-        <Link href={`/dishes/${item.id}`} className="mt-3 rounded-full bg-[#d4a373] px-6 py-1.5 text-xs font-bold text-white shadow hover:bg-[#c39160] transition-colors inline-block">
+        <Link href={`/dishes/${item.id}`} className="mt-3 w-full text-center rounded-full bg-[#d4a373] px-3 py-2 md:px-4 md:py-2 text-xs md:text-sm font-bold text-white shadow hover:bg-[#c39160] transition-colors inline-block active:scale-95">
           Xem chi tiết
         </Link>
       </div>

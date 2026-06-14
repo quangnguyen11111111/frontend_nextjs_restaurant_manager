@@ -12,14 +12,19 @@ export const CheckCapacityRes = z.object({
   data: z.object({
     target_time: z.string(),
     guest_count: z.number(),
-    available_tables: z.array(
+    tables: z.array(
       z.object({
         number: z.number(),
         capacity: z.number(),
+        max_capacity: z.number().optional().nullable(),
+        group_id: z.string().optional().nullable(),
+        group_order: z.number().optional().nullable(),
         status: z.string(),
       })
-    ),
+    ).optional(),
     available_count: z.number(),
+    is_tight_fit: z.boolean().optional(),
+    requires_merge: z.boolean().optional(),
   }),
 });
 export type CheckCapacityResType = z.TypeOf<typeof CheckCapacityRes>;

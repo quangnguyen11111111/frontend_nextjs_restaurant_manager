@@ -51,7 +51,7 @@ export default function MenuSection({
         </div>
       </div>
       
-      <div className="mx-auto mt-12 grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="mx-auto mt-8 md:mt-12 grid max-w-6xl grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:gap-6">
         {isLoading ? (
           <div className="col-span-full flex justify-center text-white py-10">Loading...</div>
         ) : (

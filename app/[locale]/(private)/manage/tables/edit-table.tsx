@@ -58,6 +58,9 @@ export default function EditTable({
     resolver: zodResolver(UpdateTableBody),
     defaultValues: {
       capacity: 2,
+      max_capacity: 2,
+      group_id: undefined,
+      group_order: undefined,
       status: undefined,
       changeToken: false,
     },
@@ -76,6 +79,9 @@ export default function EditTable({
 
     form.reset({
       capacity: table.capacity,
+      max_capacity: table.max_capacity,
+      group_id: table.group_id,
+      group_order: table.group_order,
       status: table.status,
       changeToken: false,
     });
@@ -108,6 +114,9 @@ export default function EditTable({
           setId(undefined);
           form.reset({
             capacity: 2,
+            max_capacity: 2,
+            group_id: undefined,
+            group_order: undefined,
             status: undefined,
             changeToken: false,
           });
@@ -119,6 +128,9 @@ export default function EditTable({
         onCloseAutoFocus={() => {
           form.reset({
             capacity: 2,
+            max_capacity: 2,
+            group_id: undefined,
+            group_order: undefined,
             status: undefined,
             changeToken: false,
           });
@@ -172,6 +184,77 @@ export default function EditTable({
                             onChange={(e) => {
                               const value = e.target.valueAsNumber;
                               field.onChange(isNaN(value) ? "" : value);
+                              if (!isNaN(value)) {
+                                form.setValue("max_capacity", value + 1);
+                              }
+                            }}
+                          />
+                          <FormMessage />
+                        </div>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="max_capacity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="grid grid-cols-4 items-center justify-items-start gap-4">
+                        <Label htmlFor="max_capacity">Sức chứa tối đa</Label>
+                        <div className="col-span-3 w-full space-y-2">
+                          <Input
+                            id="max_capacity"
+                            type="number"
+                            className="w-full bg-muted"
+                            value={field.value ?? ""}
+                            readOnly
+                          />
+                          <FormMessage />
+                        </div>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="group_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="grid grid-cols-4 items-center justify-items-start gap-4">
+                        <Label htmlFor="group_id">Nhóm ghép</Label>
+                        <div className="col-span-3 w-full space-y-2">
+                          <Input
+                            id="group_id"
+                            type="text"
+                            className="w-full"
+                            value={field.value ?? ""}
+                            onChange={(e) => {
+                              field.onChange(e.target.value === "" ? undefined : e.target.value);
+                            }}
+                          />
+                          <FormMessage />
+                        </div>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="group_order"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="grid grid-cols-4 items-center justify-items-start gap-4">
+                        <Label htmlFor="group_order">Thứ tự ghép</Label>
+                        <div className="col-span-3 w-full space-y-2">
+                          <Input
+                            id="group_order"
+                            type="number"
+                            className="w-full"
+                            value={field.value ?? ""}
+                            onChange={(e) => {
+                              const value = e.target.valueAsNumber;
+                              field.onChange(isNaN(value) ? undefined : value);
                             }}
                           />
                           <FormMessage />

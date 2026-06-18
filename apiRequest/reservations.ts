@@ -11,7 +11,7 @@ export const CreateReservationBody = z.object({
 export type CreateReservationBodyType = z.TypeOf<typeof CreateReservationBody>;
 
 export const CheckInReservationBody = z.object({
-  table_number: z.number(),
+  table_number: z.array(z.number()),
 });
 export type CheckInReservationBodyType = z.TypeOf<typeof CheckInReservationBody>;
 

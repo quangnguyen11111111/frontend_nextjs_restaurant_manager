@@ -6,12 +6,14 @@ export abstract class OrderState {
   canPay(): boolean { return false; }
   canCancel(): boolean { return false; }
   canAddDishes(): boolean { return false; }
+  getAllowedTransitions(): string[] { return [this.status]; }
 }
 
 export class PendingArrivalOrderState extends OrderState {
   status = SessionStatus.Pending_Arrival;
   canCancel() { return true; }
   canAddDishes() { return true; }
+  getAllowedTransitions(): string[] { return [this.status, SessionStatus.Active, SessionStatus.Cancelled]; }
 }
 
 export class ActiveOrderState extends OrderState {
@@ -19,6 +21,7 @@ export class ActiveOrderState extends OrderState {
   canPay() { return true; }
   canCancel() { return true; }
   canAddDishes() { return true; }
+  getAllowedTransitions(): string[] { return [this.status, SessionStatus.Paid, SessionStatus.Cancelled]; }
 }
 
 export class PaidOrderState extends OrderState {

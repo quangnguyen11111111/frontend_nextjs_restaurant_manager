@@ -64,6 +64,8 @@ const guestApiRequest = {
   order: (body: GuestCreateOrdersBodyType) =>
     http.post<GuestCreateOrdersResType>("/api/guests/orders", body),
   getOrderList: () => http.get<GuestGetOrdersResType>("/api/guests/orders"),
+  cancelOrder: () => http.post<any>("/api/guests/orders/cancel", null),
+  cancelOrderDetail: (orderDetailId: number) => http.put<any>(`/api/guests/orders/${orderDetailId}/cancel`, null),
 };
 
 export default guestApiRequest;

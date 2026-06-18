@@ -23,6 +23,7 @@ import Quantity from '@/app/[locale]/(public)/(guest)/guest/menu/quantity'
 
 import { useGetDishListQuery } from '@/queries/useDish'
 import { useCreateOrderMutation } from '@/queries/useOrder'
+import { useCreateGuestMutation } from '@/queries/useAccount'
 import { handleErrorApi } from '@/lib/utils'
 
 export default function AddOrder() {
@@ -35,6 +36,7 @@ export default function AddOrder() {
   const dishes = dishesData?.payload.data ?? []
   
   const createOrderMutation = useCreateOrderMutation()
+  const createGuestMutation = useCreateGuestMutation()
 
   const totalPrice = useMemo(() => {
     return dishes.reduce((result, dish) => {
@@ -73,11 +75,15 @@ export default function AddOrder() {
     try {
       let guestId = selectedGuest?.id
       if (isNewGuest) {
-        // Admin must select an existing guest in this architecture
-        // Because "New Guest" means creating a guest without QR code, which requires an admin-create-guest API.
-        // For now, if it's new guest, we can't proceed without a guestId
-        alert("Vui lòng chọn khách hàng đã quét mã QR hoặc đã được cấp Guest Token (chuyển sang tab Khách đã chọn).")
-        return
+        if (!name || !tableNumber) {
+          alert("Vui lòng nhập tên khách hàng và chọn bàn")
+          return
+        }
+        const guestRes = await createGuestMutation.mutateAsync({
+          name: name,
+          tableNumber: tableNumber
+        })
+        guestId = guestRes.payload.id || guestRes.payload.data?.id
       }
 
       if (!guestId) {
@@ -87,9 +93,11 @@ export default function AddOrder() {
 
       await createOrderMutation.mutateAsync({
         guestId: guestId,
+        tableNumber: tableNumber,
         orders: orders
       })
       
+      form.reset()
       setOpen(false)
       setOrders([])
     } catch (error) {
@@ -145,8 +153,10 @@ export default function AddOrder() {
                           <div className='flex items-center gap-4'>
                             <div>{field.value}</div>
                             <TablesDialog
-                              onChoose={(table) => {
-                                field.onChange(table.number)
+                              onChoose={(tables) => {
+                                if (tables.length > 0) {
+                                  field.onChange(tables[0].number)
+                                }
                               }}
                             />
                           </div>

@@ -10,7 +10,7 @@ export const useCreateReservationMutation = () => {
 export const useCheckInReservationMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ orderId, table_number }: { orderId: number, table_number: number }) =>
+    mutationFn: ({ orderId, table_number }: { orderId: number, table_number: number[] }) =>
       reservationsApiRequest.checkInReservation(orderId, { table_number }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });

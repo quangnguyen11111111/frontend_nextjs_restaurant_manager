@@ -25,5 +25,7 @@ const accountApiRequest = {
     http.get<AccountResType>(`/api/accounts/detail/${id}`),
   deleteEmployee: (id: number) =>
     http.delete<AccountResType>(`/api/accounts/detail/${id}`),
+  createGuest: (body: { name: string; tableNumber: number }) =>
+    http.post<any>("/api/accounts/guests", body),
 };
 export default accountApiRequest;

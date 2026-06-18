@@ -53,6 +53,12 @@ export const useAddAccountMutation = () => {
   });
 };
 
+export const useCreateGuestMutation = () => {
+  return useMutation({
+    mutationFn: accountApiRequest.createGuest,
+  });
+};
+
 export const useUpdateAccountMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({

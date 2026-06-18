@@ -80,9 +80,12 @@ const request = async <Response>(
     [key: string]: string;
   } =
     body instanceof FormData
-      ? {}
+      ? {
+          Accept: "application/json",
+        }
       : {
           "Content-Type": "application/json",
+          Accept: "application/json",
         };
   if (isClient) {
     const accessToken = localStorage.getItem("accessToken");

@@ -97,7 +97,7 @@ export default function OrderStatics({
             for (const guestId in tableStatics) {
               const guestStatics = tableStatics[Number(guestId)]
               if (
-                [guestStatics.Pending_Arrival, guestStatics.Active, guestStatics.Paid].some(
+                [guestStatics.Pending_Arrival, guestStatics.Active].some(
                   (status) => status !== 0 && status !== undefined
                 )
               ) {

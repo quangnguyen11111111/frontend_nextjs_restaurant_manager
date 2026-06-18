@@ -35,6 +35,7 @@ export const OrderSchema = z.object({
   id: z.number(),
   table_number: z.number().nullable(),
   table: TableSchema.optional(),
+  tables: z.array(TableSchema).optional(),
   guest_id: z.number().nullable(), // host guest
   guest: z
     .object({
@@ -114,6 +115,7 @@ export type PayGuestOrdersResType = z.TypeOf<typeof PayGuestOrdersRes>
 export const CreateOrdersBody = z
   .object({
     guestId: z.number(),
+    tableNumber: z.number().optional(),
     orders: z.array(
       z.object({
         dishId: z.number(),

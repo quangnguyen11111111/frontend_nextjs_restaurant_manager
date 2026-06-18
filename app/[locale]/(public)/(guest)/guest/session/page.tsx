@@ -45,14 +45,13 @@ export default function GuestSessionPage() {
     try {
       if (hasActiveSession) {
         await guestJoinMutation.mutateAsync({
-          table_number: tableNumber,
+          table_number: Number(tableNumber),
           session_pin: pin,
         });
       } else {
         const res = await hostOpenMutation.mutateAsync({
-          table_number: tableNumber,
-          // guest_count can be asked later, but for simplicity we default to 1 on backend
-          // We could add a guest_count input here for Host, but let's keep it simple.
+          table_number: [tableNumber],
+          guest_count: 1,
         });
         const newPin = res.payload.data.session_pin;
         if (newPin) {

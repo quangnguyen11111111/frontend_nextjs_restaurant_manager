@@ -2,10 +2,11 @@
 
 import { useAppStore } from "@/components/query-provider";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 import { OrderStatus } from "@/constants/type";
-import { formatCurrency } from "@/lib/utils";
-import { useGuestGetOrderListQuery } from "@/queries/useGuest";
+import { formatCurrency, handleErrorApi } from "@/lib/utils";
+import { useGuestGetOrderListQuery, useGuestCancelOrderDetailMutation, useGuestCancelOrderMutation } from "@/queries/useGuest";
 import {
   PayGuestOrdersResType,
   UpdateOrderDetailResType,
@@ -21,7 +22,22 @@ export default function OrdersCart() {
   const orders =  data?.payload.data ?? []
   
   const socket = useAppStore((state) => state.socket);
-  
+  const cancelOrderDetailMutation = useGuestCancelOrderDetailMutation();
+  const cancelOrderMutation = useGuestCancelOrderMutation();
+
+  const handleCancelOrder = async () => {
+    try {
+      await cancelOrderMutation.mutateAsync();
+      toast.success("Đã huỷ đơn thành công");
+    } catch (error) {
+      handleErrorApi({ error });
+    }
+  };
+
+  const canCancel = orders.length > 0 && 
+    orders.every((order) => order.status === OrderStatus.Pending || order.status === OrderStatus.Cancelled) && 
+    orders.some(o => o.status === OrderStatus.Pending);
+
   const { waitingForPaying, paid } = useMemo(() => {
     
     return orders.reduce(
@@ -51,6 +67,16 @@ export default function OrdersCart() {
       },
     );
   }, [orders]);
+
+  const handleCancelOrderDetail = async (orderDetailId: number) => {
+    try {
+      await cancelOrderDetailMutation.mutateAsync(orderDetailId);
+      toast.success("Đã huỷ món thành công");
+      refetch();
+    } catch (error) {
+      handleErrorApi({ error });
+    }
+  };
 
   useEffect(() => {
     if (socket?.connected) {
@@ -120,16 +146,37 @@ export default function OrdersCart() {
               <Badge className="px-2 bg-[#d4a373] text-[#0f2f2b] hover:bg-[#d4a373]/90 border-none font-bold">{order.quantity}</Badge>
             </div>
           </div>
-          <div className="flex-shrink-0 ml-auto flex justify-center items-center">
+          <div className="flex-shrink-0 ml-auto flex flex-col justify-center items-end gap-2">
             <Badge variant={"outline"} className="border-[#ff9a00] text-[#ff9a00] bg-[#ff9a00]/10 px-3 py-1 font-medium shadow-inner">
               {t(order.status as any)}
             </Badge>
+            {order.status === OrderStatus.Pending && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-7 px-2 text-xs text-red-400 hover:text-red-500 hover:bg-red-400/10"
+                onClick={() => handleCancelOrderDetail(order.id)}
+                disabled={cancelOrderDetailMutation.isPending}
+              >
+                Huỷ món
+              </Button>
+            )}
           </div>
         </div>
       ))}
 
       {orders.length > 0 && (
-        <div className="sticky bottom-4 mt-6 z-10">
+        <div className="sticky bottom-4 mt-6 z-10 flex flex-col gap-2">
+          {canCancel && (
+            <Button 
+              onClick={handleCancelOrder} 
+              variant="destructive" 
+              className="w-full h-12 text-lg font-bold shadow-lg"
+              disabled={cancelOrderMutation.isPending}
+            >
+              Huỷ đơn
+            </Button>
+          )}
           <div className="w-full flex items-center justify-between p-6 rounded-xl bg-[#d4a373] text-[#0f2f2b] shadow-2xl border border-[#c19263]">
             <span className="text-lg md:text-xl font-bold font-serif">
               {orders.length > 0 && (orders[0] as any).order?.status === 'Paid' ? 'Đã thanh toán' : 'Tổng cộng'} ({waitingForPaying.quantity} món)

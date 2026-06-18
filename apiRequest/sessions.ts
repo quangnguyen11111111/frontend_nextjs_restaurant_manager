@@ -3,7 +3,7 @@ import { OrderSchema } from "@/schemaValidations/order.schema";
 import z from "zod";
 
 export const HostOpenBody = z.object({
-  table_number: z.number(),
+  table_number: z.array(z.number()),
   guest_count: z.number().optional(),
 });
 export type HostOpenBodyType = z.TypeOf<typeof HostOpenBody>;

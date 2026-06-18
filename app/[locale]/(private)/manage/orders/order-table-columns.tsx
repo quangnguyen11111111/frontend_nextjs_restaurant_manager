@@ -13,6 +13,7 @@ import { OrderTableContext } from './order-table'
 import OrderGuestDetail from './order-guest-detail'
 import { useTranslations } from 'next-intl'
 import { TablesDialog } from './tables-dialog'
+import { OrderStateFactory } from '@/lib/patterns/state/OrderState'
 
 type OrderItem = GetOrdersResType['data'][0]
 const orderTableColumns: ColumnDef<OrderItem>[] = [
@@ -35,7 +36,10 @@ const orderTableColumns: ColumnDef<OrderItem>[] = [
           {tableNumber ? (
             tableNumber
           ) : (
-            <TablesDialog onChoose={(table) => checkIn({ orderId: row.original.id, table_number: table.number })}>
+            <TablesDialog 
+              targetGuestCount={row.original.guest_count}
+              onChoose={(tables) => checkIn({ orderId: row.original.id, table_number: tables.map(t => t.number) })}
+            >
               <Button variant="outline" size="sm">Chọn bàn</Button>
             </TablesDialog>
           )}
@@ -127,7 +131,7 @@ const orderTableColumns: ColumnDef<OrderItem>[] = [
             <SelectValue placeholder='Theme' />
           </SelectTrigger>
           <SelectContent>
-            {SessionStatusValues.map((status) => (
+            {OrderStateFactory.getState(row.getValue('status')).getAllowedTransitions().map((status) => (
               <SelectItem key={status} value={status}>
                 {t(status as any)}
               </SelectItem>

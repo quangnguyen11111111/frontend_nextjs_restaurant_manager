@@ -32,7 +32,7 @@ import AutoPagination from "@/components/share/auto-pagination";
 import { formatCurrency, handleErrorApi, getVietnameseOrderStatus } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAppStore } from "@/components/query-provider";
-import { OrderStatusValues, SessionStatusValues } from "@/constants/type";
+import { OrderStatusValues, SessionStatusValues, OrderStatus } from "@/constants/type";
 import OrderStatics from "./order-statics";
 import orderTableColumns from "./order-table-columns";
 import { useOrderService } from "./order.service";
@@ -53,7 +53,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { endOfDay, format, startOfDay } from "date-fns";
-import { useGetOrderListQuery, useUpdateSessionStatusMutation } from "@/queries/useOrder";
+import { useGetOrderListQuery, useUpdateSessionStatusMutation, useUpdateOrderDetailMutation } from "@/queries/useOrder";
 import { useListTableQuery } from "@/queries/useTable";
 import { useCheckInReservationMutation } from "@/queries/useReservation";
 import { toast } from "sonner";
@@ -66,7 +66,7 @@ export const OrderTableContext = createContext({
     status: (typeof OrderStatusValues)[number] | (typeof SessionStatusValues)[number];
     quantity: number;
   }) => {},
-  checkIn: (payload: { orderId: number; table_number: number }) => {},
+  checkIn: (payload: { orderId: number; table_number: number[] }) => {},
   orderObjectByGuestId: {} as OrderObjectByGuestID,
 });
 
@@ -119,7 +119,29 @@ export default function OrderTable() {
   const { statics, orderObjectByGuestId, servingGuestByTableNumber } =
     useOrderService(orderList);
   const updateSessionMutation = useUpdateSessionStatusMutation();
+  const updateOrderDetailMutation = useUpdateOrderDetailMutation();
   const checkInMutation = useCheckInReservationMutation();
+
+  const cookAllItems = async (orderDetails: any[]) => {
+    const pendingItems = orderDetails.filter(d => d.status === OrderStatus.Pending);
+    if (pendingItems.length === 0) {
+      toast.info('Không có món nào đang chờ nấu');
+      return;
+    }
+    try {
+      await Promise.all(
+        pendingItems.map(item => 
+          updateOrderDetailMutation.mutateAsync({
+            orderDetailId: item.id,
+            status: OrderStatus.Processing
+          })
+        )
+      );
+      toast.success('Đã chuyển các món sang đang nấu');
+    } catch (error) {
+      handleErrorApi({ error });
+    }
+  };
 
   const changeStatus = async (body: {
     orderId: number;
@@ -137,7 +159,7 @@ export default function OrderTable() {
     }
   };
 
-  const checkIn = async (body: { orderId: number; table_number: number }) => {
+  const checkIn = async (body: { orderId: number; table_number: number[] }) => {
     try {
       const res = await checkInMutation.mutateAsync(body);
       toast.success(res.payload.message || 'Chọn bàn thành công');
@@ -366,7 +388,16 @@ export default function OrderTable() {
                       <TableRow>
                         <TableCell colSpan={row.getVisibleCells().length}>
                           <div className="p-4 bg-muted/20 border rounded-md m-2 space-y-2">
-                            <h4 className="font-semibold mb-2">Chi Tiết Đơn Hàng (Order #{row.original.id})</h4>
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="font-semibold">Chi Tiết Đơn Hàng (Order #{row.original.id})</h4>
+                              <Button 
+                                size="sm" 
+                                onClick={() => cookAllItems(row.original.order_details || [])}
+                                disabled={(row.original.order_details || []).filter(d => d.status === OrderStatus.Pending).length === 0}
+                              >
+                                Nấu tất cả
+                              </Button>
+                            </div>
                             {(row.original.order_details || []).length === 0 && (
                               <p className="text-sm text-muted-foreground">Không có món ăn nào trong đơn này.</p>
                             )}

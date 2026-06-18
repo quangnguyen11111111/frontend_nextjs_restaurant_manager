@@ -20,15 +20,21 @@ export const useOrderService = (orderList: GetOrdersResType['data']) => {
       if(order.status) {
         statics.status[order.status] = (statics.status[order.status] || 0) + 1
       }
-      // Nếu table và guest chưa bị xóa
-      if (order.table_number !== null && order.guest_id !== null) {
-        if (!statics.table[order.table_number]) {
-          statics.table[order.table_number] = {}
-        }
-        statics.table[order.table_number][order.guest_id] = {
-          ...statics.table[order.table_number]?.[order.guest_id],
-          [order.status]: (statics.table[order.table_number]?.[order.guest_id]?.[order.status] ?? 0) + 1
-        }
+      // Lấy danh sách tất cả các bàn mà order này chiếm dụng
+      const assignedTables = order.tables && order.tables.length > 0 
+        ? order.tables.map(t => t.number) 
+        : (order.table_number !== null ? [order.table_number] : [])
+
+      if (assignedTables.length > 0 && order.guest_id !== null) {
+        assignedTables.forEach(tNumber => {
+          if (!statics.table[tNumber]) {
+            statics.table[tNumber] = {}
+          }
+          statics.table[tNumber][order.guest_id!] = {
+            ...statics.table[tNumber]?.[order.guest_id!],
+            [order.status]: (statics.table[tNumber]?.[order.guest_id!]?.[order.status] ?? 0) + 1
+          }
+        })
       }
 
       // Tính toán cho orderObjectByGuestId
@@ -40,11 +46,13 @@ export const useOrderService = (orderList: GetOrdersResType['data']) => {
       }
 
       // Tính toán cho guestByTableNumber
-      if (order.table_number && order.guest_id) {
-        if (!guestByTableNumber[order.table_number]) {
-          guestByTableNumber[order.table_number] = {}
-        }
-        guestByTableNumber[order.table_number][order.guest_id] = orderObjectByGuestId[order.guest_id]
+      if (assignedTables.length > 0 && order.guest_id) {
+        assignedTables.forEach(tNumber => {
+          if (!guestByTableNumber[tNumber]) {
+            guestByTableNumber[tNumber] = {}
+          }
+          guestByTableNumber[tNumber][order.guest_id!] = orderObjectByGuestId[order.guest_id!]
+        })
       }
     })
 

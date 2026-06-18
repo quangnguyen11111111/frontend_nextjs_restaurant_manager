@@ -36,3 +36,23 @@ export const useGuestGetOrderListQuery = () => {
     queryKey: ['guest-orders']
   })
 }
+
+export const useGuestCancelOrderMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: guestApiRequest.cancelOrder,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guest-orders'] })
+    }
+  })
+}
+
+export const useGuestCancelOrderDetailMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: guestApiRequest.cancelOrderDetail,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guest-orders'] })
+    }
+  })
+}

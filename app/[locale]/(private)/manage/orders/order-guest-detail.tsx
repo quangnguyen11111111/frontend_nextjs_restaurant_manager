@@ -49,11 +49,8 @@ export default function OrderGuestDetail({ guest, order }: { guest: Guest; order
   const pay = async () => {
     if (!guest) return
     try {
-      const res = await payForGuestMutation.mutateAsync({ guestId: guest.id })
-      socket?.emit('payment', {
-        guestId: guest.id,
-        data: res.payload.data
-      })
+      await payForGuestMutation.mutateAsync({ guestId: guest.id })
+      // Observer trên backend sẽ tự động emit sự kiện payment khi trạng thái order thay đổi.
     } catch (error) {
       handleErrorApi({ error })
     }

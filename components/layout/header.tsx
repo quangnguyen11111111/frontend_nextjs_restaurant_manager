@@ -113,19 +113,19 @@ const Header = () => {
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#d4a373] text-[#0f2f2b]">
             <span className="font-serif text-xl font-bold italic">Dola</span>
           </div>
-          <span className="font-serif text-2xl font-bold italic text-white hidden sm:block">
+          <span className="font-serif text-2xl font-bold italic text-white hidden lg:block">
             Restaurant
           </span>
         </Link>
 
         {/* Center: Desktop Nav */}
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden items-center gap-8 lg:flex">
           <NavItems />
         </nav>
 
         {/* Right: Actions */}
         <div className="flex items-center gap-4">
-          <div className="hidden items-center gap-4 text-white/90 sm:flex">
+          <div className="hidden items-center gap-4 text-white/90 lg:flex">
             <button className="hover:text-amber-500 transition-colors">
               <Search className="h-5 w-5" />
             </button>
@@ -181,7 +181,7 @@ const Header = () => {
           )}
 
           {/* Mobile Menu */}
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger className="text-white hover:text-amber-500">
                 <Menu className="h-6 w-6" />

@@ -7,7 +7,7 @@ import { GetOrdersResType } from '@/schemaValidations/order.schema'
 import { useContext } from 'react'
 import { formatDateTimeToLocaleString, simpleMatchText } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
-import { SessionStatus, SessionStatusValues } from '@/constants/type'
+import { SessionStatus, SessionStatusValues, OrderStatus } from '@/constants/type'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { OrderTableContext } from './order-table'
 import OrderGuestDetail from './order-guest-detail'
@@ -119,19 +119,35 @@ const orderTableColumns: ColumnDef<OrderItem>[] = [
           quantity: 0
         })
       }
+      const currentStatus = row.getValue('status') as string
+      const orderState = OrderStateFactory.getState(currentStatus)
+      const orderDetails = row.original.order_details || []
+      const hasCookingOrDelivered = orderDetails.some(
+        d => d.status === OrderStatus.Processing || d.status === OrderStatus.Delivered
+      )
+
+      // Chỉ giữ lại trạng thái hiện tại và trạng thái Cancelled (nếu thoả mãn điều kiện)
+      const allowedTransitions = orderState.getAllowedTransitions().filter(status => {
+        if (status === currentStatus) return true
+        if (status === SessionStatus.Cancelled) {
+          return orderState.canCancel() && !hasCookingOrDelivered
+        }
+        return false
+      })
+
       return (
         <Select
           onValueChange={(value: (typeof SessionStatusValues)[number]) => {
             changeOrderStatus(value)
           }}
-          defaultValue={SessionStatus.Active}
-          value={row.getValue('status')}
+          defaultValue={currentStatus}
+          value={currentStatus}
         >
           <SelectTrigger className='w-[140px]'>
             <SelectValue placeholder='Theme' />
           </SelectTrigger>
           <SelectContent>
-            {OrderStateFactory.getState(row.getValue('status')).getAllowedTransitions().map((status) => (
+            {allowedTransitions.map((status) => (
               <SelectItem key={status} value={status}>
                 {t(status as any)}
               </SelectItem>

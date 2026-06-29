@@ -59,11 +59,8 @@ export default function EditOrder({
         orderDetailId: id,
         ...values
       })
-      if (res.payload.data?.guest_id) {
-        socket?.emit('update-order', {
-          guestId: res.payload.data.guest_id,
-          data: res.payload.data
-        })
+      if (res.payload.data) {
+        // Observer trên backend sẽ tự động emit sự kiện update-order
       }
       reset()
       onSubmitSuccess && onSubmitSuccess()

@@ -106,7 +106,7 @@ export default function MenuOrder() {
     try {
       const res = await mutateAsync(cart);
       if (res.payload.data) {
-        socket?.emit("new-order", res.payload.data);
+        // Observer trên backend sẽ tự động emit sự kiện new-order
       }
       toast.success("Đặt món thành công!");
       clearCart();

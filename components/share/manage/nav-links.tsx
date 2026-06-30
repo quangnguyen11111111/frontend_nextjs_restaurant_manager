@@ -11,10 +11,12 @@ import { cn } from "@/lib/utils";
 import { Package2, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import menuItems from "./menuItems";
 
 export default function NavLinks() {
   const pathname = usePathname();
+  const t = useTranslations();
   const role = useAppStore((state) => state.role);
   return (
     <TooltipProvider>
@@ -45,10 +47,10 @@ export default function NavLinks() {
                     )}
                   >
                     <Item.Icon className="h-5 w-5" />
-                    <span className="sr-only">{Item.title}</span>
+                    <span className="sr-only">{t(`${Item.name}.title` as any)}</span>
                   </Link>
                 </TooltipTrigger>
-                <TooltipContent side="right">{Item.title}</TooltipContent>
+                <TooltipContent side="right">{t(`${Item.name}.title` as any)}</TooltipContent>
               </Tooltip>
             );
           })}
@@ -68,10 +70,10 @@ export default function NavLinks() {
                 )}
               >
                 <Settings className="h-5 w-5" />
-                <span className="sr-only">Cài đặt</span>
+                <span className="sr-only">{t("Setting.title")}</span>
               </Link>
             </TooltipTrigger>
-            <TooltipContent side="right">Cài đặt</TooltipContent>
+            <TooltipContent side="right">{t("Setting.title")}</TooltipContent>
           </Tooltip>
         </nav>
       </aside>

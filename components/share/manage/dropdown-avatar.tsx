@@ -12,8 +12,9 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useLogoutMutation } from "@/queries/useAuth";
 import { useRouter } from "next/navigation";
-import { handleErrorApi } from "@/lib/utils";
+import { handleErrorApi, removeTokensFromLocalStorage, removeDataCartFromLocalStorage } from "@/lib/utils";
 import { useAccountMeQuery } from "@/queries/useAccount";
+import { useCartStore } from "@/store/cartStore";
 
 export default function DropdownAvatar() {
   const route = useRouter();
@@ -24,6 +25,9 @@ export default function DropdownAvatar() {
     if (logoutMutation.isPending) return;
     try {
       await logoutMutation.mutateAsync();
+      useCartStore.getState().clearCart();
+      removeTokensFromLocalStorage();
+      removeDataCartFromLocalStorage();
       route.refresh();
     } catch (error: any) {
       handleErrorApi({ error });

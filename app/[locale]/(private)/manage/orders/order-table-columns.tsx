@@ -4,7 +4,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { GetOrdersResType } from '@/schemaValidations/order.schema'
-import { useContext } from 'react'
+import { useContext, useMemo } from 'react'
 import { formatDateTimeToLocaleString, simpleMatchText } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { SessionStatus, SessionStatusValues, OrderStatus } from '@/constants/type'
@@ -16,10 +16,12 @@ import { TablesDialog } from './tables-dialog'
 import { OrderStateFactory } from '@/lib/patterns/state/OrderState'
 
 type OrderItem = GetOrdersResType['data'][0]
-const orderTableColumns: ColumnDef<OrderItem>[] = [
+export const useOrderTableColumns = () => {
+  const t = useTranslations('Orders');
+  return useMemo<ColumnDef<OrderItem>[]>(() => [
   {
     accessorKey: 'table_number',
-    header: 'Bàn',
+    header: t('tableNumber'),
     cell: function Cell({ row }) {
       const { checkIn } = useContext(OrderTableContext)
       const tableNumber = row.original.table_number
@@ -53,7 +55,7 @@ const orderTableColumns: ColumnDef<OrderItem>[] = [
   },
   {
     id: 'guestName',
-    header: 'Khách hàng',
+    header: t('guestName'),
     cell: function Cell({ row }) {
       const { orderObjectByGuestId } = useContext(OrderTableContext)
       const guest = row.original.guest
@@ -96,7 +98,7 @@ const orderTableColumns: ColumnDef<OrderItem>[] = [
   },
   {
     id: 'detailsCount',
-    header: 'Số món',
+    header: t('detailsCount'),
     cell: ({ row }) => (
       <div className='flex items-center gap-2'>
         <Badge variant='outline'>
@@ -107,7 +109,7 @@ const orderTableColumns: ColumnDef<OrderItem>[] = [
   },
   {
     accessorKey: 'status',
-    header: 'Trạng thái',
+    header: t('status'),
     cell: function Cell({ row }) {
       const t = useTranslations('SessionStatus')
       const { changeStatus } = useContext(OrderTableContext)
@@ -159,12 +161,12 @@ const orderTableColumns: ColumnDef<OrderItem>[] = [
   },
   {
     id: 'orderHandlerName',
-    header: 'Người xử lý',
+    header: t('orderHandlerName'),
     cell: ({ row }) => <div>{''}</div>
   },
   {
     id: 'time',
-    header: () => <div>Thời gian</div>,
+    header: () => <div>{t('time')}</div>,
     cell: ({ row }) => {
       const reservationTime = row.original.reservation_time
       const createdAt = row.original.created_at
@@ -185,6 +187,5 @@ const orderTableColumns: ColumnDef<OrderItem>[] = [
       )
     }
   }
-]
-
-export default orderTableColumns
+  ], [t]);
+}

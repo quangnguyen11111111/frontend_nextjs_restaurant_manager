@@ -34,7 +34,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAppStore } from "@/components/query-provider";
 import { OrderStatusValues, SessionStatusValues, OrderStatus } from "@/constants/type";
 import OrderStatics from "./order-statics";
-import orderTableColumns from "./order-table-columns";
+import { useOrderTableColumns } from "./order-table-columns";
 import { useOrderService } from "./order.service";
 import { Check, ChevronsUpDown } from "lucide-react";
 
@@ -88,6 +88,7 @@ export default function OrderTable() {
   const searchParam = useSearchParams();
   const t = useTranslations("SessionStatus");
   const tOrderStatus = useTranslations("OrderStatus");
+  const tOrder = useTranslations("Orders");
   const socket = useAppStore((state) => state.socket);
   const queryClient = useQueryClient();
   const [openStatusFilter, setOpenStatusFilter] = useState(false);
@@ -107,6 +108,7 @@ export default function OrderTable() {
   const tableListSortedByNumber = tableList.sort(
     (a: any, b: any) => a.number - b.number,
   );
+  const columns = useOrderTableColumns();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -190,7 +192,7 @@ export default function OrderTable() {
 
   const table = useReactTable({
     data: orderList,
-    columns: orderTableColumns,
+    columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -268,7 +270,7 @@ export default function OrderTable() {
         </div>
         <div className="flex flex-wrap items-center gap-4 py-4">
           <Input
-            placeholder="Tên khách"
+            placeholder={tOrder("guestName")}
             value={
               (table.getColumn("guestName")?.getFilterValue() as string) ?? ""
             }
@@ -278,7 +280,7 @@ export default function OrderTable() {
             className="max-w-[100px]"
           />
           <Input
-            placeholder="Số bàn"
+            placeholder={tOrder("tableNumber")}
             value={
               (table.getColumn("table_number")?.getFilterValue() as string) ?? ""
             }
@@ -425,7 +427,7 @@ export default function OrderTable() {
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={orderTableColumns.length}
+                    colSpan={columns.length}
                     className="h-24 text-center"
                   >
                     No results.

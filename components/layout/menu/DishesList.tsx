@@ -5,6 +5,7 @@ import { Heart } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
 import { useGetDishListByCategoryQuery } from "@/queries/useDish";
 import { DishStatus } from "@/constants/type";
+import Link from "next/link";
 
 type DishesListProps = {
   selectedCategoryId: number;
@@ -65,9 +66,10 @@ export default function DishesList({
                   loading="lazy"
                   className="h-44 sm:h-48 md:h-52 lg:h-48 xl:h-56 w-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
-                <div className="absolute -bottom-5 left-1/2 flex h-10 w-10 md:h-12 md:w-12 -translate-x-1/2 items-center justify-center rounded-full bg-amber-500 text-white shadow-lg transition-transform duration-300 group-hover:-translate-y-1">
-                  <Heart className="h-4 w-4 md:h-5 md:w-5" />
-                </div>
+                {/* ấn vào thì chuyển đến trang chi tiết món ăn */}
+                <Link href={`/dishes/${dish.id}`} className="absolute -bottom-4 left-1/2 flex h-12 w-15 md:h-10 md:w-19  -translate-x-1/2 items-center justify-center rounded-sm bg-amber-500 text-white shadow-lg transition-transform duration-300 group-hover:-translate-y-1">
+                  <span className=" text-[12px] md:text-[14px] mb-4">Chi tiết</span>
+                </Link>
               </div>
 
               <div className="flex flex-1 flex-col items-center gap-2 md:gap-3 px-4 md:px-5 pb-6 pt-8 md:pt-10 text-center">
@@ -77,7 +79,7 @@ export default function DishesList({
                 <div className="flex items-center gap-2 text-base md:text-lg font-bold text-amber-600">
                   <span>{formatCurrency(dish.price)}</span>
                 </div>
-                <button
+               <button
                   className={cn(
                     "mt-auto rounded-full px-5 py-2 md:px-6 text-sm md:text-[14px] font-bold text-white shadow-md transition-all duration-300",
                     "bg-amber-500 hover:bg-amber-400 hover:shadow-lg active:scale-95",

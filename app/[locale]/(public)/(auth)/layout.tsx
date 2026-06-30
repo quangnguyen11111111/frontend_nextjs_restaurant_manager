@@ -16,7 +16,7 @@ export default function Layout({
             className="flex items-center gap-2 text-lg font-semibold md:text-base"
           >
             <Package2 className="h-6 w-6" />
-            <span className="sr-only">Big boy</span>
+            <span className="sr-only">HQ restaurant</span>
           </Link>
           <div className="">Trang đăng nhập</div>
         </nav>

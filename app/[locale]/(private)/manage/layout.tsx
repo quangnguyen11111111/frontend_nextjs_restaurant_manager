@@ -4,6 +4,7 @@ import RefreshToken from "@/components/layout/refresh-token";
 import NavLinks from "@/components/share/manage/nav-links";
 import MobileNavLinks from "@/components/share/manage/mobile-nav-links";
 import DropdownAvatar from "@/components/share/manage/dropdown-avatar";
+import SwitchLanguage from "@/components/share/switch-language";
 
 export default function Layout({
   children,
@@ -17,7 +18,8 @@ export default function Layout({
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
           <MobileNavLinks />
           <div className="relative ml-auto flex-1 md:grow-0">
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2 items-center">
+              <SwitchLanguage />
               <DarkModeToggle />
             </div>
           </div>

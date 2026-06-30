@@ -12,12 +12,12 @@ export async function generateMetadata({
     const dishRes = await dishApiRequest.getDetail(Number(id));
     const dish = dishRes.payload.data;
     return {
-      title: `${dish.name} | Dola Restaurant`,
+      title: `${dish.name} | HQ restaurant`,
       description: dish.description,
     };
   } catch (error) {
     return {
-      title: "Món ăn | Dola Restaurant",
+      title: "Món ăn | HQ restaurant",
     };
   }
 }

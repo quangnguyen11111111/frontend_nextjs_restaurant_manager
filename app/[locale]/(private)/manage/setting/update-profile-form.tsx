@@ -154,7 +154,7 @@ export default function UpdateProfileForm() {
                 <Button variant="outline" size="sm" type="reset">
                   Hủy
                 </Button>
-                <Button size="sm" type="submit">
+                <Button size="sm" type="submit" isLoading={updateMeMutation.isPending}>
                   Lưu thông tin
                 </Button>
               </div>

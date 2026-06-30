@@ -32,8 +32,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import AutoPagination from "@/components/share/auto-pagination";
 import { CategoryListResType } from "@/schemaValidations/category.schema";
 import EditCategory from "./edit-category";
@@ -56,33 +57,35 @@ const CategoryTableContext = createContext<{
   setCategoryDelete: (value: CategoryItem | null) => {},
 });
 
-export const columns: ColumnDef<CategoryItem>[] = [
-  {
-    accessorKey: "id",
-    header: "ID",
-  },
+export const useCategoryTableColumns = () => {
+  const t = useTranslations("Categories");
+  return useMemo<ColumnDef<CategoryItem>[]>(() => [
+    {
+      accessorKey: "id",
+      header: "ID",
+    },
   {
     accessorKey: "name",
-    header: "Ten",
+    header: t("name"),
     cell: ({ row }) => <div className="capitalize">{row.getValue("name")}</div>,
   },
   {
     accessorKey: "parent_id",
-    header: "Danh muc cha",
+    header: t("parentCategory"),
     cell: ({ row }) => (
       <div>{(row.getValue("parent_id") as number | null) ?? "-"}</div>
     ),
   },
   {
     accessorKey: "status",
-    header: "Trang thai",
+    header: t("status"),
     cell: ({ row }) => (
       <div>{getVietnameseCategoryStatus(row.getValue("status"))}</div>
     ),
   },
   {
     accessorKey: "order",
-    header: "Thu tu",
+    header: t("order"),
     cell: ({ row }) => (
       <div>{(row.getValue("order") as number | null) ?? "-"}</div>
     ),
@@ -112,17 +115,19 @@ export const columns: ColumnDef<CategoryItem>[] = [
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={openEditCategory}>Sua</DropdownMenuItem>
-            <DropdownMenuItem onClick={openDeleteCategory}>
+            {/* <DropdownMenuItem onClick={openDeleteCategory}>
               Xoa
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
           </DropdownMenuContent>
         </DropdownMenu>
       );
     },
   },
-];
+  ], [t]);
+};
 
 export default function CategoryTable() {
+  const t = useTranslations("Categories");
   const searchParam = useSearchParams();
   const page = searchParam.get("page") ? Number(searchParam.get("page")) : 1;
   const currentPage = Number.isFinite(page) && page > 0 ? page : 1;
@@ -134,6 +139,7 @@ export default function CategoryTable() {
     useGetCategoryListQuery(currentPage);
   const data = categoryListData?.payload.data ?? [];
   const paginationMeta = categoryListData?.payload.pagination;
+  const columns = useCategoryTableColumns();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -178,7 +184,7 @@ export default function CategoryTable() {
         />
         <div className="flex items-center py-4">
           <Input
-            placeholder="Loc ten"
+            placeholder={t("filterName")}
             value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
               table.getColumn("name")?.setFilterValue(event.target.value)

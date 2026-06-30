@@ -222,7 +222,7 @@ export default function EditCategory({
                     </FormItem>
                   )}
                 />
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="order"
                   render={({ field }) => (
@@ -250,13 +250,13 @@ export default function EditCategory({
                       </div>
                     </FormItem>
                   )}
-                />
+                /> */}
               </div>
             )}
           </form>
         </Form>
         <DialogFooter>
-          <Button type="submit" form="edit-category-form">
+          <Button type="submit" isLoading={updateCategoryMutation.isPending} form="edit-category-form">
             Luu
           </Button>
         </DialogFooter>

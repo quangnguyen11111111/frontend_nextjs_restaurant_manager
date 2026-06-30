@@ -105,7 +105,7 @@ export default function LoginForm() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
+              <Button type="submit" isLoading={loginMutation.isPending} className="w-full">
                 Đăng nhập
               </Button>
               <Button variant="outline" className="w-full" type="button">

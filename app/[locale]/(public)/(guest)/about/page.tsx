@@ -18,7 +18,7 @@ export default function AboutPage() {
         <h1 className="text-3xl md:text-4xl font-semibold mb-6">Giới thiệu</h1>
         
         <p className="text-white/90 leading-relaxed mb-12 text-sm md:text-base max-w-5xl">
-          <span className="font-bold italic">DOLA RESTAURANT</span> - Nhà hàng ẩm thực hiện đại kết hợp với truyền thống, tạo nên tính mới lạ cho thực khách. Được ra đời vào năm 2021 với tiêu chí “Khách hàng là trên hết” nên chúng tôi luôn tự hào về cách phục vụ cũng như các món ăn mà chúng tôi làm ra. Nhà hàng chúng tôi luôn luôn đặt khách hàng lên hàng đầu, tận tâm phục vụ, mang lại cho khách hàng những trải nghiệm tuyệt vời nhất. Các món ăn với công thức độc quyền sẽ mang lại hương vị mới mẻ cho thực khách. Dola Restaurant xin chân thành cảm ơn.
+          <span className="font-bold italic">HQ restaurant</span> - Nhà hàng ẩm thực hiện đại kết hợp với truyền thống, tạo nên tính mới lạ cho thực khách. Được ra đời vào năm 2021 với tiêu chí “Khách hàng là trên hết” nên chúng tôi luôn tự hào về cách phục vụ cũng như các món ăn mà chúng tôi làm ra. Nhà hàng chúng tôi luôn luôn đặt khách hàng lên hàng đầu, tận tâm phục vụ, mang lại cho khách hàng những trải nghiệm tuyệt vời nhất. Các món ăn với công thức độc quyền sẽ mang lại hương vị mới mẻ cho thực khách. HQ restaurant xin chân thành cảm ơn.
         </p>
 
         {/* Image Collage */}
@@ -58,7 +58,7 @@ export default function AboutPage() {
         </div>
 
         <p className="font-bold text-base md:text-lg italic text-white uppercase tracking-wide">
-          HÃY ĐẾN DOLA RESTAURANT ĐỂ THƯỞNG THỨC NGAY BẠN NHÉ!
+          HÃY ĐẾN HQ restaurant ĐỂ THƯỞNG THỨC NGAY BẠN NHÉ!
         </p>
       </div>
     </div>

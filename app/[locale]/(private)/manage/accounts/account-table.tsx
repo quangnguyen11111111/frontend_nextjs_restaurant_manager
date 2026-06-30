@@ -39,7 +39,8 @@ import {
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import EditEmployee from "./edit-employee";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import AddEmployee from "./add-employee";
 import AutoPagination from "@/components/share/auto-pagination";
@@ -60,81 +61,85 @@ const AccountTableContext = createContext<{
   setEmployeeDelete: (value: AccountItem | null) => {},
 });
 
-export const columns: ColumnDef<AccountType>[] = [
-  {
-    accessorKey: "id",
-    header: "ID",
-  },
-  {
-    accessorKey: "avatar",
-    header: "Avatar",
-    cell: ({ row }) => (
-      <div>
-        <Avatar className="aspect-square w-25 h-25 rounded-md object-cover">
-          <AvatarImage src={row.getValue("avatar")} />
-          <AvatarFallback className="rounded-none">
-            {row.original.name}
-          </AvatarFallback>
-        </Avatar>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "name",
-    header: "Tên",
-    cell: ({ row }) => <div className="capitalize">{row.getValue("name")}</div>,
-  },
-  {
-    accessorKey: "email",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Email
-          <CaretSortIcon className="ml-2 h-4 w-4" />
-        </Button>
-      );
+export const useAccountTableColumns = () => {
+  const t = useTranslations("ManageAccounts");
+  return useMemo<ColumnDef<AccountType>[]>(() => [
+    {
+      accessorKey: "id",
+      header: "ID",
     },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: function Actions({ row }) {
-      const { setEmployeeIdEdit, setEmployeeDelete } =
-        useContext(AccountTableContext);
-      const openEditEmployee = () => {
-        setEmployeeIdEdit(row.original.id);
-      };
+    {
+      accessorKey: "avatar",
+      header: t("image"),
+      cell: ({ row }) => (
+        <div>
+          <Avatar className="aspect-square w-25 h-25 rounded-md object-cover">
+            <AvatarImage src={row.getValue("avatar")} />
+            <AvatarFallback className="rounded-none">
+              {row.original.name}
+            </AvatarFallback>
+          </Avatar>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "name",
+      header: t("name"),
+      cell: ({ row }) => <div className="capitalize">{row.getValue("name")}</div>,
+    },
+    {
+      accessorKey: "email",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {t("email")}
+            <CaretSortIcon className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: function Actions({ row }) {
+        const { setEmployeeIdEdit, setEmployeeDelete } =
+          useContext(AccountTableContext);
+        const openEditEmployee = () => {
+          setEmployeeIdEdit(row.original.id);
+        };
 
-      const openDeleteEmployee = () => {
-        setEmployeeDelete(row.original);
-      };
-      return (
-        <DropdownMenu modal={false}>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <DotsHorizontalIcon className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={openEditEmployee}>Sửa</DropdownMenuItem>
-            <DropdownMenuItem onClick={openDeleteEmployee}>
-              Xóa
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+        const openDeleteEmployee = () => {
+          setEmployeeDelete(row.original);
+        };
+        return (
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <DotsHorizontalIcon className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={openEditEmployee}>Sửa</DropdownMenuItem>
+              {/* <DropdownMenuItem onClick={openDeleteEmployee}>
+                Xóa
+              </DropdownMenuItem> */}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
     },
-  },
-];
+  ], [t]);
+};
 
 export default function AccountTable() {
+  const t = useTranslations("ManageAccounts");
   const searchParam = useSearchParams();
   const page = searchParam.get("page") ? Number(searchParam.get("page")) : 1;
   const currentPage = Number.isFinite(page) && page > 0 ? page : 1;
@@ -147,6 +152,7 @@ export default function AccountTable() {
     useGetAccountListQuery(currentPage);
   const data = accountListData?.payload.data ?? [];
   const paginationMeta = accountListData?.payload.pagination;
+  const columns = useAccountTableColumns();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -190,10 +196,10 @@ export default function AccountTable() {
         />
         <div className="flex items-center py-4">
           <Input
-            placeholder="Filter emails..."
-            value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
+            placeholder={t("filterName")}
+            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
-              table.getColumn("email")?.setFilterValue(event.target.value)
+              table.getColumn("name")?.setFilterValue(event.target.value)
             }
             className="max-w-sm"
           />

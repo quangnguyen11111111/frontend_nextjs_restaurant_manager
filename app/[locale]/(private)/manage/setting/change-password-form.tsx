@@ -119,7 +119,7 @@ export default function ChangePasswordForm() {
                 <Button variant="outline" size="sm" type="reset">
                   Hủy
                 </Button>
-                <Button size="sm" type="submit">
+                <Button size="sm" type="submit" isLoading={changePasswordMutation.isPending}>
                   Lưu thông tin
                 </Button>
               </div>

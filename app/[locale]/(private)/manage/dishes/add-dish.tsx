@@ -319,7 +319,7 @@ export default function AddDish() {
           </form>
         </Form>
         <DialogFooter>
-          <Button type="submit" form="add-dish-form">
+          <Button type="submit" isLoading={addDishMutation.isPending} form="add-dish-form">
             Thêm
           </Button>
         </DialogFooter>

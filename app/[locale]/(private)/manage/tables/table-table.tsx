@@ -32,7 +32,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -67,109 +68,113 @@ const TableTableContext = createContext<{
   setTableDelete: (value: TableItem | null) => {},
 });
 
-export const columns: ColumnDef<TableItem>[] = [
-  {
-    accessorKey: "number",
-    header: "Số bàn",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("number")}</div>
-    ),
-    filterFn: (row, id, value) => {
-      if (!value) return true;
-      return String(value) === String(row.getValue("number"));
+export const useTableTableColumns = () => {
+  const t = useTranslations("Tables");
+  return useMemo<ColumnDef<TableItem>[]>(() => [
+    {
+      accessorKey: "number",
+      header: t("number"),
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue("number")}</div>
+      ),
+      filterFn: (row, id, value) => {
+        if (!value) return true;
+        return String(value) === String(row.getValue("number"));
+      },
     },
-  },
-  {
-    accessorKey: "capacity",
-    header: "Sức chứa (Mặc định)",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("capacity")}</div>
-    ),
-  },
-  {
-    accessorKey: "max_capacity",
-    header: "Sức chứa (Tối đa)",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("max_capacity") ?? "-"}</div>
-    ),
-  },
-  {
-    accessorKey: "group_id",
-    header: "Nhóm ghép",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("group_id") ?? "-"}</div>
-    ),
-  },
-  {
-    accessorKey: "group_order",
-    header: "Thứ tự ghép",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("group_order") ?? "-"}</div>
-    ),
-  },
-  {
-    accessorKey: "status",
-    header: "Trạng thái",
-    cell: ({ row }) => (
-      <div>{getVietnameseTableStatus(row.getValue("status"))}</div>
-    ),
-  },
-  {
-    accessorKey: "token",
-    header: "QR Code",
-    cell: ({ row }) => (
-      <div>
-        <QrCodeTable
-          token={row.getValue("token")}
-          tableNumber={row.getValue("number")}
-        />
-      </div>
-    ),
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: function Actions({ row }) {
-      const { setTableIdEdit, setTableDelete } = useContext(TableTableContext);
-      const openEditTable = () => {
-        setTableIdEdit(row.original.number);
-      };
+    {
+      accessorKey: "capacity",
+      header: t("capacity"),
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue("capacity")}</div>
+      ),
+    },
+    {
+      accessorKey: "max_capacity",
+      header: t("max_capacity"),
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue("max_capacity") ?? "-"}</div>
+      ),
+    },
+    {
+      accessorKey: "group_id",
+      header: t("group_id"),
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue("group_id") ?? "-"}</div>
+      ),
+    },
+    {
+      accessorKey: "group_order",
+      header: t("group_order"),
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue("group_order") ?? "-"}</div>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: t("status"),
+      cell: ({ row }) => (
+        <div>{getVietnameseTableStatus(row.getValue("status"))}</div>
+      ),
+    },
+    {
+      accessorKey: "token",
+      header: t("qrcode"),
+      cell: ({ row }) => (
+        <div>
+          <QrCodeTable
+            token={row.getValue("token")}
+            tableNumber={row.getValue("number")}
+          />
+        </div>
+      ),
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: function Actions({ row }) {
+        const { setTableIdEdit, setTableDelete } = useContext(TableTableContext);
+        const openEditTable = () => {
+          setTableIdEdit(row.original.number);
+        };
 
-      const openDeleteTable = () => {
-        setTableDelete(row.original);
-      };
-      return (
-        <DropdownMenu modal={false}>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <DotsHorizontalIcon className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={openEditTable}>Sửa</DropdownMenuItem>
-            <DropdownMenuItem onClick={openDeleteTable}>Xóa</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+        const openDeleteTable = () => {
+          setTableDelete(row.original);
+        };
+        return (
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <DotsHorizontalIcon className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={openEditTable}>Sửa</DropdownMenuItem>
+              {/* <DropdownMenuItem onClick={openDeleteTable}>Xóa</DropdownMenuItem> */}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
     },
-  },
-];
+  ], [t]);
+};
 
 // Số lượng item trên 1 trang
 const PAGE_SIZE = 10;
 export default function TableTable() {
+  const t = useTranslations("Tables");
   const searchParam = useSearchParams();
   const page = searchParam.get("page") ? Number(searchParam.get("page")) : 1;
-  const pageIndex = page - 1;
-  // const params = Object.fromEntries(searchParam.entries())
+  const currentPage = Number.isFinite(page) && page > 0 ? page : 1;
+  const pageIndex = currentPage - 1;
   const [tableIdEdit, setTableIdEdit] = useState<number | undefined>();
   const [tableDelete, setTableDelete] = useState<TableItem | null>(null);
-  // lấy dữ liệu từ API
-  const { data: tablesData, isPending } = useListTableQuery();
-  const data = tablesData?.payload.data ?? [];
+  const tableListQuery = useListTableQuery();
+  const data = tableListQuery.data?.payload.data ?? [];
+  const columns = useTableTableColumns();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -219,7 +224,7 @@ export default function TableTable() {
         />
         <div className="flex items-center py-4">
           <Input
-            placeholder="Lọc số bàn"
+            placeholder={t("filterNumber")}
             value={
               (table.getColumn("number")?.getFilterValue() as string) ?? ""
             }
@@ -253,7 +258,7 @@ export default function TableTable() {
               ))}
             </TableHeader>
             <TableBody>
-              {isPending ? (
+              {tableListQuery.isPending ? (
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}

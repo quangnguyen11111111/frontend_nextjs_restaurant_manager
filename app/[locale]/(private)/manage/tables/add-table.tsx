@@ -246,7 +246,7 @@ export default function AddTable() {
           </form>
         </Form>
         <DialogFooter>
-          <Button type="submit" form="add-table-form">
+          <Button type="submit" isLoading={addTableMutation.isPending} form="add-table-form">
             Thêm
           </Button>
         </DialogFooter>

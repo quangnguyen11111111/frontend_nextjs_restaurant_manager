@@ -5,12 +5,12 @@
     "minmaxPassword": "Password must be between 6 and 100 characters"
   },
   "Brand": {
-    "title": "Big Boy Restaurant",
-    "defaultTitle": "Big Boy"
+    "title": "HQ restaurant",
+    "defaultTitle": "HQ restaurant"
   },
   "HomePage": {
     "title": "Home page",
-    "description": "Craving a classic American diner experience? Look no further than Big Boy! Savor our iconic Big Boy burger, juicy and flavorful, paired with creamy milkshakes and crispy fries. Perfect for families and friends!",
+    "description": "Craving a classic American diner experience? Look no further than HQ restaurant! Savor our iconic HQ restaurant burger, juicy and flavorful, paired with creamy milkshakes and crispy fries. Perfect for families and friends!",
     "slogan": "Taste good, every moment",
     "h2": "A variety of dishes"
   },
@@ -34,19 +34,48 @@
   },
   "ManageAccounts": {
     "title": "Manage accounts",
-    "description": "Manage employee accounts"
+    "description": "Manage employee accounts",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "image": "Avatar",
+    "filterName": "Filter name..."
   },
   "Dashboard": {
     "title": "Dashboard",
     "description": "View and analyze sales data"
   },
+  "Analytics": {
+    "title": "Analytics",
+    "description": "View analytics"
+  },
   "Dishes": {
     "title": "Dishes",
-    "description": "Manage dishes"
+    "description": "Manage dishes",
+    "image": "Image",
+    "name": "Name",
+    "category": "Category",
+    "price": "Price",
+    "description_col": "Description",
+    "status": "Status",
+    "filterName": "Filter name..."
   },
   "Orders": {
     "title": "Orders",
-    "description": "Manage orders"
+    "description": "Manage orders",
+    "id": "ID",
+    "tableNumber": "Table Number",
+    "guestName": "Guest Name",
+    "detailsCount": "Details Count",
+    "status": "Status",
+    "orderHandlerName": "Handler Name",
+    "time": "Time",
+    "dishName": "Dish Name",
+    "quantity": "Quantity",
+    "orderStatus": "Order Status",
+    "paidStatus": "Paid Status",
+    "date": "Created Date",
+    "filterName": "Filter name/dish..."
   },
   "Setting": {
     "title": "Setting",
@@ -54,7 +83,15 @@
   },
   "Tables": {
     "title": "Tables",
-    "description": "Manage tables"
+    "description": "Manage tables",
+    "number": "Table Number",
+    "capacity": "Capacity (Default)",
+    "max_capacity": "Capacity (Max)",
+    "group_id": "Group ID",
+    "group_order": "Group Order",
+    "status": "Status",
+    "qrcode": "QR Code",
+    "filterNumber": "Filter table number"
   },
   "SwitchLanguage": {
     "title": "Switch language",
@@ -63,8 +100,11 @@
   },
   "NavItem": {
     "home": "Home",
+    "about": "About",
     "menu": "Menu",
     "orders": "Orders",
+    "highlights": "Highlights",
+    "news": "News",
     "login": "Login",
     "logout": "Logout",
     "manage": "Manage",
@@ -87,5 +127,16 @@
     "Paid": "Paid",
     "Cancelled": "Cancelled",
     "Unknown": "Unknown"
+  },
+  "Categories": {
+    "title": "Categories",
+    "description": "Manage dish categories",
+    "addCategory": "Add category",
+    "editCategory": "Edit category",
+    "name": "Name",
+    "parentCategory": "Parent category",
+    "status": "Status",
+    "order": "Dish quantity",
+    "filterName": "Filter name"
   }
 }

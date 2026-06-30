@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 
 export default function BookReservationPage() {
   const [step, setStep] = useState(1);
-  const [guestCount, setGuestCount] = useState(2);
+  const [guestCount, setGuestCount] = useState<number | "">(2);
   const [targetDate, setTargetDate] = useState("");
   const [targetTime, setTargetTime] = useState("");
   const [customerName, setCustomerName] = useState("");
@@ -28,7 +28,7 @@ export default function BookReservationPage() {
   const targetDateTime = targetDate && targetTime ? `${targetDate}T${targetTime}:00` : "";
 
   const { data: capacityData, refetch: checkCapacity, isFetching } = useCheckCapacityQuery(
-    { guest_count: guestCount, target_time: targetDateTime },
+    { guest_count: guestCount as number, target_time: targetDateTime },
     false // Disable auto fetch until user clicks check
   );
 
@@ -56,7 +56,7 @@ export default function BookReservationPage() {
 
     try {
       const res = await createReservationMutation.mutateAsync({
-        guest_count: guestCount,
+        guest_count: guestCount as number,
         reservation_time: targetDateTime,
         customer_name: customerName,
         customer_phone: customerPhone,
@@ -135,9 +135,9 @@ export default function BookReservationPage() {
               </div>
               <div className="space-y-2">
                 <Label>Số người</Label>
-                <Input type="number" min="1" required value={guestCount} onChange={(e) => setGuestCount(parseInt(e.target.value))} />
+                <Input type="number" min="1" required value={guestCount} onChange={(e) => { const val = parseInt(e.target.value); setGuestCount(isNaN(val) ? "" : val); }} />
               </div>
-              <Button type="submit" className="w-full" disabled={isFetching}>
+              <Button type="submit" isLoading={createReservationMutation.isPending} className="w-full" disabled={isFetching}>
                 {isFetching ? "Đang kiểm tra..." : "Kiểm tra bàn trống"}
               </Button>
             </form>
@@ -181,7 +181,7 @@ export default function BookReservationPage() {
                   <Label>Số điện thoại</Label>
                   <Input required type="tel" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="0901234567" />
                 </div>
-                <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600">
+                <Button type="submit" isLoading={createReservationMutation.isPending} className="w-full bg-orange-500 hover:bg-orange-600">
                   Xác Nhận Đặt Bàn
                 </Button>
               </form>

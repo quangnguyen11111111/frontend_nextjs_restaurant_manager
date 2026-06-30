@@ -9,14 +9,14 @@ export default function Footer() {
         <div className="space-y-6">
           <Link href="/" className="flex items-center gap-2">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#d4a373] text-[#0f2f2b]">
-              <span className="font-serif text-xl font-bold italic">Dola</span>
+              <span className="font-serif text-xl font-bold italic">HQ</span>
             </div>
             <span className="font-serif text-2xl font-bold italic text-white">
               Restaurant
             </span>
           </Link>
           <p className="text-sm text-white/80 leading-relaxed">
-            Nhà hàng chúng tôi luôn luôn đặt khách hàng lên hàng đầu, tận tâm phục vụ, mang lại cho khách hàng những trải nghiệm tuyệt vời nhất. Các món ăn với công thức độc quyền sẽ mang lại hương vị mới mẻ cho thực khách. Dola Restaurant xin chân thành cảm ơn.
+            Nhà hàng chúng tôi luôn luôn đặt khách hàng lên hàng đầu, tận tâm phục vụ, mang lại cho khách hàng những trải nghiệm tuyệt vời nhất. Các món ăn với công thức độc quyền sẽ mang lại hương vị mới mẻ cho thực khách. HQ restaurant xin chân thành cảm ơn.
           </p>
           <div>
             <h4 className="font-bold mb-2">Cửa hàng chính</h4>

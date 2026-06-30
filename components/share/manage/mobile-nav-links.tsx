@@ -13,9 +13,12 @@ import { Package2, PanelLeft } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { useTranslations } from "next-intl";
 import menuItems from "./menuItems";
+
 export default function MobileNavLinks() {
   const pathname = usePathname();
+  const t = useTranslations();
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -53,7 +56,7 @@ export default function MobileNavLinks() {
                 )}
               >
                 <Item.Icon className="h-5 w-5" />
-                {Item.title}
+                {t(`${Item.name}.title` as any)}
               </Link>
             );
           })}

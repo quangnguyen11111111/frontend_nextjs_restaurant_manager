@@ -36,17 +36,21 @@ export async function generateMetadata({
 
 export default async function RootLayout({
   children,
+  params
 }: Readonly<{
   children: React.ReactNode;
+  params: Promise<{ locale: Locale }>;
 }>) {
-   const messages = await getMessages()
+  const { locale } = await params;
+  const messages = await getMessages()
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",
           fontSans.variable,
         )}
+        suppressHydrationWarning
       ><NextIntlClientProvider messages={messages}>
         <QueryProvider>
           <ThemeProvider

@@ -317,7 +317,7 @@ export default function EditEmployee({
           </form>
         </Form>
         <DialogFooter>
-          <Button type="submit" form="edit-employee-form">
+          <Button type="submit" isLoading={updateAccountMutation.isPending} form="edit-employee-form">
             Lưu
           </Button>
         </DialogFooter>

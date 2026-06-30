@@ -97,7 +97,7 @@ export default function GuestSessionPage() {
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={hasActiveSession && pin.length < 4}>
+            <Button type="submit" isLoading={hostOpenMutation.isPending} className="w-full" disabled={hasActiveSession && pin.length < 4}>
               {hasActiveSession ? "Join" : "Tạo mã PIN & Mở Bàn"}
             </Button>
           </form>

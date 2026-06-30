@@ -191,13 +191,13 @@ export default function AddCategory() {
                   </FormItem>
                 )}
               />
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="order"
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="order">Thu tu</Label>
+                      <Label htmlFor="order">Số lượng món ăn</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Input
                           id="order"
@@ -219,12 +219,12 @@ export default function AddCategory() {
                     </div>
                   </FormItem>
                 )}
-              />
+              /> */}
             </div>
           </form>
         </Form>
         <DialogFooter>
-          <Button type="submit" form="add-category-form">
+          <Button type="submit" form="add-category-form" isLoading={addCategoryMutation.isPending}>
             Them
           </Button>
         </DialogFooter>

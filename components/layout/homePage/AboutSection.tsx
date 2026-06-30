@@ -10,11 +10,11 @@ export default function AboutSection() {
         <div className="space-y-6 text-white relative z-10">
           <div>
             <h3 className="font-serif text-[#d4a373] text-xl font-bold italic mb-2">Về Chúng Tôi!</h3>
-            <h2 className="font-serif text-4xl lg:text-5xl font-bold italic">Dola Restaurant</h2>
+            <h2 className="font-serif text-4xl lg:text-5xl font-bold italic">HQ restaurant</h2>
           </div>
           
           <p className="text-white/80 leading-relaxed text-lg max-w-xl">
-            Nhà hàng chúng tôi luôn luôn đặt khách hàng lên hàng đầu, tận tâm phục vụ, mang lại cho khách hàng những trải nghiệm tuyệt vời nhất. Các món ăn với công thức độc quyền sẽ mang lại hương vị mới mẻ cho thực khách. Dola Restaurant xin chân thành cảm ơn.
+            Nhà hàng chúng tôi luôn luôn đặt khách hàng lên hàng đầu, tận tâm phục vụ, mang lại cho khách hàng những trải nghiệm tuyệt vời nhất. Các món ăn với công thức độc quyền sẽ mang lại hương vị mới mẻ cho thực khách. HQ restaurant xin chân thành cảm ơn.
           </p>
           
           <div className="pt-4">

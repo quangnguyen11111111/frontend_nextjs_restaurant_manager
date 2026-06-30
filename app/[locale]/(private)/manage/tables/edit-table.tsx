@@ -355,7 +355,7 @@ export default function EditTable({
           </form>
         </Form>
         <DialogFooter>
-          <Button type="submit" form="edit-table-form">
+          <Button type="submit" isLoading={upadteTableMutation.isPending} form="edit-table-form">
             Lưu
           </Button>
         </DialogFooter>

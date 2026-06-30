@@ -226,7 +226,7 @@ export default function AddEmployee() {
           </form>
         </Form>
         <DialogFooter>
-          <Button type="submit" form="add-employee-form">
+          <Button type="submit" isLoading={addAccountMutation.isPending} form="add-employee-form">
             Thêm
           </Button>
         </DialogFooter>

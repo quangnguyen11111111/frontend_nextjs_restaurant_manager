@@ -53,7 +53,7 @@ export default function CategoryTree({
     return (
       <div key={category.id}>
         <div
-          className={`flex items-center gap-2 rounded-md px-2 py-2 text-sm font-medium transition ${
+          className={`flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm font-medium transition ${
             selectedId === category.id
               ? "bg-amber-500/20 text-amber-50"
               : "text-emerald-50 hover:bg-white/5"
@@ -92,6 +92,17 @@ export default function CategoryTree({
 
   return (
     <div className="space-y-1">
+      <div
+        className={`flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm font-medium transition ${
+          selectedId === 0
+            ? "bg-amber-500/20 text-amber-50"
+            : "text-emerald-50 hover:bg-white/5"
+        }`}
+        onClick={() => onSelectCategory(0)}
+      >
+        <div className="w-4" />
+        <span className="flex-1">Tất cả món ăn</span>
+      </div>
       {categories
         .filter((cat) => cat.parent_id === null)
         .map((cat) => (

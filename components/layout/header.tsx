@@ -11,7 +11,7 @@ import {
 } from "../ui/sheet";
 import { Button } from "../ui/button";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { cn, handleErrorApi } from "@/lib/utils";
+import { cn, handleErrorApi, removeTokensFromLocalStorage, removeDataCartFromLocalStorage } from "@/lib/utils";
 import { Role } from "@/constants/type";
 import {
   AlertDialog,
@@ -28,25 +28,27 @@ import { useAppStore } from "../query-provider";
 import { useCartStore } from "@/store/cartStore";
 import { useLogoutMutation } from "@/queries/useAuth";
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import SwitchLanguage from "@/components/share/switch-language";
 
 type MenuItem = {
   title: string;
+  name: string;
   href: string;
   role?: any[];
 };
 
 const menuItems: MenuItem[] = [
-  { title: "Trang chủ", href: "/" },
-  { title: "Giới thiệu", href: "/about" },
-  { title: "Menu", href: "/guest/menu" },
-  { title: "Đơn hàng", href: "/guest/orders", role: [Role.Guest] },
-  { title: "Món ăn nổi bật", href: "/#highlights" },
-  { title: "Tin tức", href: "/#news" },
-  { title: "Quản lý", href: "/manage/dashboard", role: [Role.Owner, Role.Employee] },
+  { title: "Trang chủ", name: "home", href: "/" },
+  { title: "Giới thiệu", name: "about", href: "/about" },
+  { title: "Menu", name: "menu", href: "/guest/menu" },
+  { title: "Đơn hàng", name: "orders", href: "/guest/orders", role: [Role.Guest] },
+  { title: "Quản lý", name: "manage", href: "/manage/dashboard", role: [Role.Owner, Role.Employee] },
 ];
 
 function NavItems({ className, onClick }: { className?: string; onClick?: () => void }) {
   const role = useAppStore((state) => state.role);
+  const t = useTranslations("NavItem");
   
   return (
     <>
@@ -59,9 +61,9 @@ function NavItems({ className, onClick }: { className?: string; onClick?: () => 
               href={item.href} 
               key={item.href} 
               onClick={onClick}
-              className={cn("text-sm font-semibold uppercase tracking-wider text-white/90 hover:text-amber-500 transition-colors", className)}
+              className={cn("text-sm font-semibold uppercase whitespace-nowrap tracking-wider text-white/90 hover:text-amber-500 transition-colors", className)}
             >
-              {item.title}
+              {t(item.name as any)}
             </Link>
           );
         }
@@ -94,6 +96,9 @@ const Header = () => {
       await logoutMutation.mutateAsync();
       setRole();
       disconnectSocket();
+      useCartStore.getState().clearCart();
+      removeTokensFromLocalStorage();
+      removeDataCartFromLocalStorage();
       router.push("/");
     } catch (error: any) {
       handleErrorApi({ error });
@@ -111,21 +116,22 @@ const Header = () => {
         {/* Left: Logo */}
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#d4a373] text-[#0f2f2b]">
-            <span className="font-serif text-xl font-bold italic">Dola</span>
+            <span className="font-serif text-xl font-bold italic">HQ</span>
           </div>
-          <span className="font-serif text-2xl font-bold italic text-white hidden lg:block">
+          <span className="font-serif text-xl font-bold italic text-white hidden xl:block">
             Restaurant
           </span>
         </Link>
 
         {/* Center: Desktop Nav */}
-        <nav className="hidden items-center gap-8 lg:flex">
+        <nav className="hidden items-center gap-4 xl:flex">
           <NavItems />
         </nav>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-4">
-          <div className="hidden items-center gap-4 text-white/90 lg:flex">
+        <div className="flex items-center gap-4 ">
+          <div className="hidden items-center gap-4 text-white/90 xl:flex">
+            <SwitchLanguage />
             <button className="hover:text-amber-500 transition-colors">
               <Search className="h-5 w-5" />
             </button>
@@ -181,7 +187,7 @@ const Header = () => {
           )}
 
           {/* Mobile Menu */}
-          <div className="lg:hidden">
+          <div className="xl:hidden">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger className="text-white hover:text-amber-500">
                 <Menu className="h-6 w-6" />

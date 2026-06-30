@@ -5,12 +5,12 @@
     "minmaxPassword": "Mật khẩu phải từ 6 đến 100 ký tự"
   },
   "Brand": {
-    "title": "Nhà hàng Big Boy",
-    "defaultTitle": "Big Boy"
+    "title": "HQ restaurant",
+    "defaultTitle": "HQ restaurant"
   },
   "HomePage": {
     "title": "Trang chủ",
-    "description": "Khát khao một trải nghiệm ẩm thực Mỹ cổ điển? Big Boy là lựa chọn hoàn hảo! Thưởng thức chiếc Big Boy burger biểu tượng, thơm ngon và đậm đà, cùng với những ly milkshake béo ngậy và khoai tây chiên giòn tan. Hoàn hảo cho các buổi gặp mặt gia đình và bạn bè!",
+    "description": "Khát khao một trải nghiệm ẩm thực Mỹ cổ điển? HQ restaurant là lựa chọn hoàn hảo! Thưởng thức chiếc HQ restaurant burger biểu tượng, thơm ngon và đậm đà, cùng với những ly milkshake béo ngậy và khoai tây chiên giòn tan. Hoàn hảo cho các buổi gặp mặt gia đình và bạn bè!",
     "slogan": "Vị ngon, trọn khoảnh khắc",
     "h2": "Đa dạng các món ăn"
   },
@@ -34,19 +34,48 @@
   },
   "ManageAccounts": {
     "title": "Quản lý tài khoản",
-    "description": "Quản lý tài khoản nhân viên"
+    "description": "Quản lý tài khoản nhân viên",
+    "name": "Tên",
+    "email": "Email",
+    "role": "Vai trò",
+    "image": "Avatar",
+    "filterName": "Lọc tên..."
   },
   "Dashboard": {
     "title": "Bảng điều khiển",
     "description": "Xem và phân tích dữ liệu bán hàng"
   },
+  "Analytics": {
+    "title": "Phân tích",
+    "description": "Xem thống kê"
+  },
   "Dishes": {
     "title": "Món ăn",
-    "description": "Quản lý món ăn"
+    "description": "Quản lý món ăn",
+    "image": "Ảnh",
+    "name": "Tên",
+    "category": "Danh mục",
+    "price": "Giá cả",
+    "description_col": "Mô tả",
+    "status": "Trạng thái",
+    "filterName": "Lọc tên..."
   },
   "Orders": {
     "title": "Đơn hàng",
-    "description": "Quản lý đơn hàng"
+    "description": "Quản lý đơn hàng",
+    "id": "ID",
+    "tableNumber": "Số bàn",
+    "guestName": "Khách hàng",
+    "detailsCount": "Số món",
+    "status": "Trạng thái",
+    "orderHandlerName": "Người xử lý",
+    "time": "Thời gian",
+    "dishName": "Tên món",
+    "quantity": "Số lượng",
+    "orderStatus": "Trạng thái ĐH",
+    "paidStatus": "Thanh toán",
+    "date": "Ngày tạo",
+    "filterName": "Lọc tên khách/món..."
   },
   "Setting": {
     "title": "Cài đặt",
@@ -54,7 +83,15 @@
   },
   "Tables": {
     "title": "Bàn ăn",
-    "description": "Quản lý bàn ăn"
+    "description": "Quản lý bàn ăn",
+    "number": "Số bàn",
+    "capacity": "Sức chứa (Mặc định)",
+    "max_capacity": "Sức chứa (Tối đa)",
+    "group_id": "Nhóm ghép",
+    "group_order": "Thứ tự ghép",
+    "status": "Trạng thái",
+    "qrcode": "QR Code",
+    "filterNumber": "Lọc số bàn"
   },
   "SwitchLanguage": {
     "title": "Chuyển ngôn ngữ",
@@ -63,8 +100,11 @@
   },
   "NavItem": {
     "home": "Trang chủ",
+    "about": "Giới thiệu",
     "menu": "Thực đơn",
     "orders": "Đơn hàng",
+    "highlights": "Món ăn nổi bật",
+    "news": "Tin tức",
     "login": "Đăng nhập",
     "logout": "Đăng xuất",
     "manage": "Quản lý",
@@ -87,5 +127,16 @@
     "Paid": "Đã thanh toán",
     "Cancelled": "Đã hủy",
     "Unknown": "Không xác định"
+  },
+  "Categories": {
+    "title": "Danh mục",
+    "description": "Quản lý danh mục món ăn",
+    "addCategory": "Thêm danh mục",
+    "editCategory": "Sửa danh mục",
+    "name": "Tên",
+    "parentCategory": "Danh mục cha",
+    "status": "Trạng thái",
+    "order": "Số lượng món ăn",
+    "filterName": "Lọc tên"
   }
 }

@@ -41,7 +41,7 @@ export default function FeatureCards() {
               {/* Inner dark box */}
               <div className="bg-[#0f2f2b]/80 p-8 w-[80%] max-w-[300px] border border-white/10 transition-all duration-500 group-hover:bg-[#0f2f2b]/90 group-hover:border-[#d4a373]/50">
                 <p className="text-[#d4a373] text-sm font-semibold tracking-widest uppercase mb-2">
-                  Dola Restaurant
+                  HQ restaurant
                 </p>
                 <h3 className="text-white text-2xl font-bold mb-4">
                   {feature.title}

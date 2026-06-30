@@ -373,7 +373,7 @@ export default function EditDish({
         </Form>
 
         <DialogFooter>
-          <Button type="submit" form="edit-dish-form">
+          <Button type="submit" isLoading={updateDishMutation.isPending} form="edit-dish-form">
             Lưu
           </Button>
         </DialogFooter>

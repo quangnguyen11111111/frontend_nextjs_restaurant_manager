@@ -18,7 +18,7 @@ export default function HeroSection() {
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center text-white">
         <h1 className="mb-4 font-serif text-5xl font-bold italic tracking-wider md:text-7xl lg:text-8xl">
-          Dola Restaurant
+          HQ restaurant
         </h1>
         <div className="mb-8 flex items-center justify-center gap-4">
           <div className="h-[1px] w-12 bg-[#d4a373] md:w-24"></div>

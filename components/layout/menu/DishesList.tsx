@@ -25,6 +25,10 @@ export default function DishesList({
     setCurrentPage(page);
   }, [page]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategoryId]);
+
   const { data: dishListData, isLoading } = useGetDishListByCategoryQuery({
     page: currentPage,
     categoryId: selectedCategoryId,

@@ -40,6 +40,10 @@ export default function BookReservationPage() {
       toast.error("Vui lòng chọn ngày, giờ và số người");
       return;
     }
+    if (targetTime < "09:00" || targetTime > "21:00") {
+      toast.error("Vui lòng chọn giờ đặt bàn từ 09:00 đến 21:00");
+      return;
+    }
     await checkCapacity();
   };
 
@@ -126,7 +130,7 @@ export default function BookReservationPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Giờ</Label>
-                  <Input type="time" required value={targetTime} onChange={(e) => setTargetTime(e.target.value)} />
+                  <Input type="time" min="09:00" max="21:00" required value={targetTime} onChange={(e) => setTargetTime(e.target.value)} />
                 </div>
               </div>
               <div className="space-y-2">

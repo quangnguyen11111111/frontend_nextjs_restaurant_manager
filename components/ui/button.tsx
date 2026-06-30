@@ -67,7 +67,7 @@ function Button({
         data-variant={variant}
         data-size={size}
         className={cn(buttonVariants({ variant, size, className }))}
-        disabled={disabled}
+        {...({ disabled } as any)}
         {...props}
       >
         {children}

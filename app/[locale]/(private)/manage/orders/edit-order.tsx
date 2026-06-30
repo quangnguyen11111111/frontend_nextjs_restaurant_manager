@@ -106,9 +106,10 @@ export default function EditOrder({
                           id='quantity'
                           inputMode='numeric'
                           pattern='[0-9]*'
-                          className='w-16 text-center'
+                          className={`w-16 text-center ${orderDetail?.status !== OrderStatus.Pending ? 'bg-muted pointer-events-none' : ''}`}
                           {...field}
                           value={field.value}
+                          readOnly={orderDetail?.status !== OrderStatus.Pending}
                           onChange={(e) => {
                             let value = e.target.value
                             const numberValue = Number(value)

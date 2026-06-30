@@ -34,17 +34,7 @@ import {
 } from "@/components/ui/table";
 import { createContext, useContext, useEffect, useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { getTableLink, getVietnameseTableStatus } from "@/lib/utils";
+import {  getVietnameseTableStatus } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 import { TableListResType } from "@/schemaValidations/table.schema";
 import EditTable from "./edit-table";

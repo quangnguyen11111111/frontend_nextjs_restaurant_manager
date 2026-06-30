@@ -142,27 +142,7 @@ export default function AddTable() {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="max_capacity"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="max_capacity">Lượng khách tối đa</Label>
-                      <div className="col-span-3 w-full space-y-2">
-                        <Input
-                          id="max_capacity"
-                          type="number"
-                          className="w-full bg-muted"
-                          value={field.value ?? ""}
-                          readOnly
-                        />
-                        <FormMessage />
-                      </div>
-                    </div>
-                  </FormItem>
-                )}
-              />
+             
               <FormField
                 control={form.control}
                 name="group_id"

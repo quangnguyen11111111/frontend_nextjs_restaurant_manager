@@ -160,11 +160,6 @@ export const useOrderTableColumns = () => {
     }
   },
   {
-    id: 'orderHandlerName',
-    header: t('orderHandlerName'),
-    cell: ({ row }) => <div>{''}</div>
-  },
-  {
     id: 'time',
     header: () => <div>{t('time')}</div>,
     cell: ({ row }) => {

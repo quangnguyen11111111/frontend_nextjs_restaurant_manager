@@ -20,13 +20,13 @@ const guestApiRequest = {
   sLogin: (body: GuestLoginBodyType) =>
     http.post<GuestLoginResType>("/api/guests/auth/login", body),
   login: (body: GuestLoginBodyType) =>
-    http.post<GuestLoginResType>("/api/guest/auth/login", body, {
+    http.post<GuestLoginResType>("/next-api/guest/auth/login", body, {
       baseUrl: "",
     }),
   sRecover: (body: { customer_phone: string; session_pin: string }) =>
     http.post<any>("/api/guests/auth/recover", body),
   recover: (body: { customer_phone: string; session_pin: string }) =>
-    http.post<any>("/api/guest/auth/recover", body, { baseUrl: "" }),
+    http.post<any>("/next-api/guest/auth/recover", body, { baseUrl: "" }),
   sLogout: (
     body: LogoutBodyType & {
       accessToken: string;
@@ -43,7 +43,7 @@ const guestApiRequest = {
         },
       },
     ),
-  logout: () => http.post("/api/guest/auth/logout", null, { baseUrl: "" }), // client gọi đến route handler, không cần truyền AT và RT vào body vì AT và RT tự  động gửi thông qua cookie rồi
+  logout: () => http.post("/next-api/guest/auth/logout", null, { baseUrl: "" }), // client gọi đến route handler, không cần truyền AT và RT vào body vì AT và RT tự  động gửi thông qua cookie rồi
   sRefreshToken: (body: RefreshTokenBodyType) =>
     http.post<RefreshTokenResType>("/api/guests/auth/refresh-token", body),
   async refreshToken() {
@@ -51,7 +51,7 @@ const guestApiRequest = {
       return this.refreshTokenRequest;
     }
     this.refreshTokenRequest = http.post<RefreshTokenResType>(
-      "/api/guests/auth/refresh-token",
+      "/next-api/guests/auth/refresh-token",
       null,
       {
         baseUrl: "",

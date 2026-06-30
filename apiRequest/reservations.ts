@@ -25,7 +25,7 @@ const reservationsApiRequest = {
   sCreateReservation: (body: CreateReservationBodyType) =>
     http.post<ReservationResType>("/api/reservations", body),
   createReservation: (body: CreateReservationBodyType) =>
-    http.post<ReservationResType>("/api/guest/auth/reservation", body, {
+    http.post<ReservationResType>("/next-api/guest/auth/reservation", body, {
       baseUrl: "",
     }),
   checkInReservation: (orderId: number, body: CheckInReservationBodyType) =>

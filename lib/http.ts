@@ -134,18 +134,18 @@ const request = async <Response>(
         normalizedUrl.startsWith("api/guests/");
 
       const staffAuthEndpoints = [
-        "api/auth/login",
-        "api/auth/logout",
-        "api/auth/refresh-token",
+        "next-api/auth/login",
+        "next-api/auth/logout",
+        "next-api/auth/refresh-token",
       ];
 
       const guestAuthEndpoints = [
-        "api/guest/auth/login",
-        "api/guest/auth/logout",
-        "api/guest/auth/refresh-token",
-        "api/guests/auth/login",
-        "api/guests/auth/logout",
-        "api/guests/auth/refresh-token",
+        "next-api/guest/auth/login",
+        "next-api/guest/auth/logout",
+        "next-api/guest/auth/refresh-token",
+        "next-api/guests/auth/login",
+        "next-api/guests/auth/logout",
+        "next-api/guests/auth/refresh-token",
       ];
 
       const shouldTryRefreshToken =
@@ -197,27 +197,27 @@ const request = async <Response>(
   // Đảm bảo logic dưới đây chỉ chạy ở phía client (browser)
   if (isClient) {
     const guestLoginEndpoints = [
-      "api/guest/auth/login",
-      "api/guests/auth/login",
+      "next-api/guest/auth/login",
+      "next-api/guests/auth/login",
     ];
     const guestRefreshEndpoints = [
-      "api/guest/auth/refresh-token",
-      "api/guests/auth/refresh-token",
+      "next-api/guest/auth/refresh-token",
+      "next-api/guests/auth/refresh-token",
     ];
     const guestLogoutEndpoints = [
-      "api/guest/auth/logout",
-      "api/guests/auth/logout",
+      "next-api/guest/auth/logout",
+      "next-api/guests/auth/logout",
     ];
-    if (normalizedUrl === "api/auth/login") {
+    if (normalizedUrl === "next-api/auth/login") {
       const { accessToken, refreshToken } = (payload as LoginResType).data;
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
-    } else if (normalizedUrl === "api/auth/refresh-token") {
+    } else if (normalizedUrl === "next-api/auth/refresh-token") {
       const { accessToken, refreshToken } = (payload as RefreshTokenResType)
         .data;
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
-    } else if (normalizedUrl === "api/auth/logout") {
+    } else if (normalizedUrl === "next-api/auth/logout") {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
     } else if (guestLoginEndpoints.includes(normalizedUrl)) {

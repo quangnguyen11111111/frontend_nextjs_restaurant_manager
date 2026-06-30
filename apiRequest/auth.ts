@@ -15,13 +15,13 @@ const authApiRequest = {
   sLogin: (body: LoginBodyType) =>
     http.post<LoginResType>("/api/auth/login", body),
   cLogin: (body: LoginBodyType) =>
-    http.post<LoginResType>("/api/auth/login", body, {
+    http.post<LoginResType>("/next-api/auth/login", body, {
       baseUrl: "",
     }),
   sLogout: (body: LogoutBodyType) =>
     http.post("/api/auth/logout", { refreshToken: body.refreshToken }),
   cLogout: () =>
-    http.post("/api/auth/logout", null, {
+    http.post("/next-api/auth/logout", null, {
       baseUrl: "",
     }),
   sRefreshToken: (body: RefreshTokenBodyType) =>
@@ -29,7 +29,7 @@ const authApiRequest = {
   async cRefreshToken() {
     if (this.refreshTokenRequest) return this.refreshTokenRequest;
     this.refreshTokenRequest = http.post<RefreshTokenResType>(
-      "/api/auth/refresh-token",
+      "/next-api/auth/refresh-token",
       null,
       {
         baseUrl: "",

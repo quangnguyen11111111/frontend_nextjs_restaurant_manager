@@ -31,5 +31,8 @@ const orderApiRequest = {
     http.put<any>(`/api/orders/session/${orderId}`, { status }),
   pay: (body: PayGuestOrdersBodyType) =>
     http.post<PayGuestOrdersResType>("/api/orders/pay", body),
+  getKitchenOrders: () => http.get<any>("/api/orders/kitchen/consolidated"),
+  markKitchenOrderDone: (orderDetailId: number) =>
+    http.put<any>(`/api/orders/kitchen/${orderDetailId}/status`, {}),
 };
 export default orderApiRequest;

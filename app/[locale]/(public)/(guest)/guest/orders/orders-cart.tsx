@@ -91,12 +91,19 @@ export default function OrdersCart() {
       console.log("disconnect");
     }
 
+    const audio = new Audio('/ting.wav');
+
     function onUpdateOrder(data: UpdateOrderDetailResType["data"]) {
       const {
         dish_name: name,
         quantity,
         status,
       } = data;
+      
+      if (status === OrderStatus.Delivered) {
+        audio.play().catch(e => console.log('Audio play failed:', e));
+      }
+      
       toast.success(`Đơn ${name} x${quantity} đã chuyển sang trạng thái: ${t(status as any)}`);
       refetch();
     }

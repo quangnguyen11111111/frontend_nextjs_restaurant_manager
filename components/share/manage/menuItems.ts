@@ -7,6 +7,7 @@ import {
   Salad,
   Table,
   Layers,
+  Utensils,
 } from "lucide-react";
 
 const menuItems = [
@@ -22,6 +23,13 @@ const menuItems = [
     name: "Orders",
     Icon: ShoppingCart,
     href: "/manage/orders",
+    roles: [Role.Owner, Role.Employee],
+  },
+  {
+    title: "Nhà bếp",
+    name: "ManageKitchen",
+    Icon: Utensils,
+    href: "/manage/kitchen",
     roles: [Role.Owner, Role.Employee],
   },
   {

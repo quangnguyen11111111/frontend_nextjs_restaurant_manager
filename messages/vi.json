@@ -41,6 +41,10 @@
     "image": "Avatar",
     "filterName": "Lọc tên..."
   },
+  "ManageKitchen": {
+    "title": "Nhà bếp",
+    "description": "Quản lý và theo dõi các món ăn đang chế biến"
+  },
   "Dashboard": {
     "title": "Bảng điều khiển",
     "description": "Xem và phân tích dữ liệu bán hàng"

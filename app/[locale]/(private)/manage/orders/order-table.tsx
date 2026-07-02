@@ -173,16 +173,27 @@ export default function OrderTable() {
   useEffect(() => {
     if (!socket) return;
 
+    const audio = new Audio('/ting.wav');
+
+    const onUpdateOrder = (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      // Nếu có món được chuyển sang trạng thái Delivered thì báo ting ting
+      if (data && data.status === OrderStatus.Delivered) {
+        audio.play().catch(e => console.log('Audio play failed:', e));
+        toast.success(`Món ${data.dish_name || 'ăn'} đã hoàn thành!`);
+      }
+    };
+
     const onRefetch = () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
     };
 
-    socket.on("update-order", onRefetch);
+    socket.on("update-order", onUpdateOrder);
     socket.on("new-order", onRefetch);
     socket.on("payment", onRefetch);
 
     return () => {
-      socket.off("update-order", onRefetch);
+      socket.off("update-order", onUpdateOrder);
       socket.off("new-order", onRefetch);
       socket.off("payment", onRefetch);
     };

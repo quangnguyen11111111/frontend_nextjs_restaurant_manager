@@ -41,6 +41,10 @@
     "image": "Avatar",
     "filterName": "Filter name..."
   },
+  "ManageKitchen": {
+    "title": "Kitchen",
+    "description": "Manage and track dishes being prepared"
+  },
   "Dashboard": {
     "title": "Dashboard",
     "description": "View and analyze sales data"

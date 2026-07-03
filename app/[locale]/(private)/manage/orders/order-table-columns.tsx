@@ -37,14 +37,14 @@ export const useOrderTableColumns = () => {
           </Button>
           {tableNumber ? (
             tableNumber
-          ) : (
+          ) : row.original.status !== SessionStatus.Cancelled ? (
             <TablesDialog 
               targetGuestCount={row.original.guest_count}
               onChoose={(tables) => checkIn({ orderId: row.original.id, table_number: tables.map(t => t.number) })}
             >
               <Button variant="outline" size="sm">Chọn bàn</Button>
             </TablesDialog>
-          )}
+          ) : null}
         </div>
       )
     },

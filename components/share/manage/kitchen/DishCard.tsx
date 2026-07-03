@@ -71,7 +71,7 @@ export default function DishCard({ dish, onMarkDone, onMarkProcessing, onMarkAll
             <div className="flex flex-col">
               <div className="flex items-center space-x-2">
                 <span className="font-semibold text-lg">
-                  {item.table_number === 'Mang đi' ? item.table_number : `Bàn ${item.table_number}`}
+                  {item.table_number === 'Mang đi' || item.table_number === 'Chuẩn bị món trước' ? 'Chuẩn bị món trước' : `Bàn ${item.table_number}`}
                 </span>
                 <span className="bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full text-xs font-bold">
                   x{item.quantity}

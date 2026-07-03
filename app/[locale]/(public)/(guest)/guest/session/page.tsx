@@ -67,16 +67,16 @@ export default function GuestSessionPage() {
   }
 
   return (
-    <div className="h-[90vh] flex items-center justify-center bg-muted/20">
-      <Card className="mx-auto max-w-sm w-full">
+    <div className="h-[90vh] flex items-center justify-center bg-[#0f2f2b]">
+      <Card className="mx-auto max-w-sm w-full bg-[#133631] border-emerald-800/50 text-white shadow-xl shadow-black/20">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">
+          <CardTitle className="text-2xl text-center text-amber-500">
             {hasActiveSession ? "Vào Bàn" : "Mở Bàn"}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={handleSubmit}>
-            <div className="space-y-2 text-center text-sm text-muted-foreground">
+            <div className="space-y-2 text-center text-sm text-emerald-100/70">
               {hasActiveSession 
                 ? "Bàn này đã được mở. Vui lòng nhập mã PIN từ Host (người mở bàn) để truy cập."
                 : "Bạn là người đầu tiên tại bàn. Hệ thống sẽ tạo một mã PIN ngẫu nhiên. Vui lòng ghi nhớ mã PIN này để chia sẻ với người khác."}
@@ -84,7 +84,7 @@ export default function GuestSessionPage() {
             
             {hasActiveSession && (
               <div className="space-y-2">
-                <Label htmlFor="pin">Mã PIN</Label>
+                <Label htmlFor="pin" className="text-emerald-100">Mã PIN</Label>
                 <Input 
                   id="pin" 
                   type="text" 
@@ -93,31 +93,32 @@ export default function GuestSessionPage() {
                   value={pin}
                   onChange={(e) => setPin(e.target.value.toUpperCase())}
                   placeholder="VD: ABCD" 
+                  className="bg-[#1a403a] border-emerald-800/50 text-white placeholder:text-emerald-700/50 focus-visible:ring-amber-500 uppercase"
                 />
               </div>
             )}
 
-            <Button type="submit" isLoading={hostOpenMutation.isPending} className="w-full" disabled={hasActiveSession && pin.length < 4}>
-              {hasActiveSession ? "Join" : "Tạo mã PIN & Mở Bàn"}
+            <Button type="submit" isLoading={hostOpenMutation.isPending} className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold transition-colors" disabled={hasActiveSession && pin.length < 4}>
+              {hasActiveSession ? "Vào Bàn" : "Tạo mã PIN & Mở Bàn"}
             </Button>
           </form>
         </CardContent>
       </Card>
 
       <AlertDialog open={showPinDialog} onOpenChange={setShowPinDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-[#133631] border-emerald-800/50 text-white shadow-xl shadow-black/20">
           <AlertDialogHeader>
-            <AlertDialogTitle>Mở bàn thành công!</AlertDialogTitle>
+            <AlertDialogTitle className="text-amber-500 text-2xl">Mở bàn thành công!</AlertDialogTitle>
             <AlertDialogDescription asChild className="text-center space-y-4">
               <div>
-                <div className="text-base">Mã PIN của bàn là:</div>
-                <div className="text-4xl font-bold tracking-widest text-primary">{generatedPin}</div>
-                <div className="text-sm">Hãy chia sẻ mã PIN này cho các thành viên khác tại bàn để họ có thể cùng tham gia gọi món.</div>
+                <div className="text-base text-emerald-100/80">Mã PIN của bàn là:</div>
+                <div className="text-5xl font-bold tracking-widest text-white drop-shadow-md">{generatedPin}</div>
+                <div className="text-sm text-emerald-100/60">Hãy chia sẻ mã PIN này cho các thành viên khác tại bàn để họ có thể cùng tham gia gọi món.</div>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={() => router.push("/guest/menu")}>
+            <AlertDialogAction className="bg-amber-500 hover:bg-amber-600 text-black font-bold w-full transition-colors border-none" onClick={() => router.push("/guest/menu")}>
               Vào Menu Gọi Món
             </AlertDialogAction>
           </AlertDialogFooter>

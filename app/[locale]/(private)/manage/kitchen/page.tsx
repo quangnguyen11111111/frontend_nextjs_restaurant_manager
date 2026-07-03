@@ -55,6 +55,26 @@ export default function KitchenPage() {
     }
   };
 
+  const handleMarkProcessing = async (orderDetailId: number) => {
+    try {
+      await orderApiRequest.markKitchenOrderProcessing(orderDetailId);
+      toast.success("Đã chuyển sang trạng thái đang nấu");
+      fetchKitchenOrders();
+    } catch (error) {
+      toast.error("Không thể cập nhật trạng thái");
+    }
+  };
+
+  const handleMarkAllProcessing = async (dishId: number) => {
+    try {
+      await orderApiRequest.markAllKitchenOrderProcessing(dishId);
+      toast.success("Đã bắt đầu nấu tất cả các suất");
+      fetchKitchenOrders();
+    } catch (error) {
+      toast.error("Không thể cập nhật trạng thái");
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -78,6 +98,8 @@ export default function KitchenPage() {
               key={dish.dish_id} 
               dish={dish} 
               onMarkDone={handleMarkDone} 
+              onMarkProcessing={handleMarkProcessing}
+              onMarkAllProcessing={handleMarkAllProcessing}
             />
           ))}
         </div>

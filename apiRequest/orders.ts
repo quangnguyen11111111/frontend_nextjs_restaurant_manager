@@ -34,5 +34,9 @@ const orderApiRequest = {
   getKitchenOrders: () => http.get<any>("/api/orders/kitchen/consolidated"),
   markKitchenOrderDone: (orderDetailId: number) =>
     http.put<any>(`/api/orders/kitchen/${orderDetailId}/status`, {}),
+  markKitchenOrderProcessing: (orderDetailId: number) =>
+    http.put<any>(`/api/orders/kitchen/${orderDetailId}/processing`, {}),
+  markAllKitchenOrderProcessing: (dishId: number) =>
+    http.put<any>(`/api/orders/kitchen/dish/${dishId}/processing`, {}),
 };
 export default orderApiRequest;

@@ -13,7 +13,8 @@ import {
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useGuestLoginMutation } from "@/queries/useGuest";
 import { useEffect } from "react";
-import { handleErrorApi } from "@/lib/utils";
+import { decodeToken, generateSocketInstace, handleErrorApi } from "@/lib/utils";
+import { useAppStore } from "@/components/query-provider";
 
 export default function GuestLoginForm() {
   const searchParams = useSearchParams();
@@ -21,6 +22,8 @@ export default function GuestLoginForm() {
   const tableNumber = Number(params.number);
   const token = searchParams.get("token");
   const router = useRouter();
+  const setRole = useAppStore((state) => state.setRole);
+  const setSocket = useAppStore((state) => state.setSocket);
   const loginMutation = useGuestLoginMutation();
   const form = useForm<GuestLoginBodyType>({
     resolver: zodResolver(GuestLoginBody),
@@ -43,6 +46,14 @@ export default function GuestLoginForm() {
       const res = await loginMutation.mutateAsync(values);
       
       const payloadData = (res.payload as any)?.data;
+      const accessToken = payloadData?.accessToken;
+      
+      if (accessToken) {
+        const decoded = decodeToken(accessToken);
+        setRole(decoded.role);
+        setSocket(generateSocketInstace(accessToken));
+      }
+
       const hasActiveSession = payloadData?.hasActiveSession;
 
       router.push(`/guest/session?tableNumber=${tableNumber}&hasActiveSession=${hasActiveSession}`);
@@ -55,12 +66,13 @@ export default function GuestLoginForm() {
   }
 
   return (
-    <Card className="mx-auto max-w-sm">
-      <CardHeader>
-        <CardTitle className="text-2xl">Đăng nhập gọi món</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
+    <div className="min-h-screen flex items-center justify-center bg-[#0f2f2b] p-4">
+      <Card className="mx-auto max-w-sm w-full bg-[#133631] border-emerald-800/50 text-white shadow-xl shadow-black/20">
+        <CardHeader>
+          <CardTitle className="text-2xl text-center text-amber-500">Đăng nhập gọi món</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
           <form
             className="space-y-2 max-w-150 shrink-0 w-full"
             noValidate
@@ -73,15 +85,15 @@ export default function GuestLoginForm() {
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid gap-2">
-                      <Label htmlFor="name">Tên khách hàng</Label>
-                      <Input id="name" type="text" required {...field} />
-                      <FormMessage />
+                      <Label htmlFor="name" className="text-emerald-100">Tên khách hàng</Label>
+                      <Input id="name" type="text" required {...field} className="bg-[#1a403a] border-emerald-800/50 text-white placeholder:text-emerald-700/50 focus-visible:ring-amber-500" />
+                      <FormMessage className="text-red-400" />
                     </div>
                   </FormItem>
                 )}
               />
 
-              <Button type="submit" isLoading={loginMutation.isPending} className="w-full">
+              <Button type="submit" isLoading={loginMutation.isPending} className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold transition-colors">
                 Đăng nhập
               </Button>
             </div>
@@ -89,5 +101,6 @@ export default function GuestLoginForm() {
         </Form>
       </CardContent>
     </Card>
+    </div>
   );
 }

@@ -30,6 +30,7 @@ import AddOrder from "./add-order";
 import { useSearchParams } from "next/navigation";
 import AutoPagination from "@/components/share/auto-pagination";
 import { formatCurrency, handleErrorApi, getVietnameseOrderStatus } from "@/lib/utils";
+import { OrderDetailStateFactory } from "@/lib/patterns/state/OrderDetailState";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAppStore } from "@/components/query-provider";
 import { OrderStatusValues, SessionStatusValues, OrderStatus } from "@/constants/type";
@@ -403,13 +404,6 @@ export default function OrderTable() {
                           <div className="p-4 bg-muted/20 border rounded-md m-2 space-y-2">
                             <div className="flex items-center justify-between mb-2">
                               <h4 className="font-semibold">Chi Tiết Đơn Hàng (Order #{row.original.id})</h4>
-                              <Button 
-                                size="sm" 
-                                onClick={() => cookAllItems(row.original.order_details || [])}
-                                disabled={(row.original.order_details || []).filter(d => d.status === OrderStatus.Pending).length === 0}
-                              >
-                                Nấu tất cả
-                              </Button>
                             </div>
                             {(row.original.order_details || []).length === 0 && (
                               <p className="text-sm text-muted-foreground">Không có món ăn nào trong đơn này.</p>
@@ -425,7 +419,9 @@ export default function OrderTable() {
                                 </div>
                                 <div className="text-sm font-semibold">{formatCurrency(detail.dish_price * detail.quantity)}</div>
                                 <div className="ml-auto">
-                                  <Button variant="ghost" size="sm" onClick={() => setSelectedOrderDetail(detail)}>Sửa</Button>
+                                  {(detail.status === OrderStatus.Pending || OrderDetailStateFactory.getState(detail.status).canCancel()) && (
+                                    <Button variant="ghost" size="sm" onClick={() => setSelectedOrderDetail(detail)}>Sửa</Button>
+                                  )}
                                 </div>
                               </div>
                             ))}

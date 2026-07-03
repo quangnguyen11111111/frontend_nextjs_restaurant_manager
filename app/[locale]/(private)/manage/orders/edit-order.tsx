@@ -142,8 +142,6 @@ export default function EditOrder({
                           {OrderStatusValues.filter((s) => {
                             const stateObj = OrderDetailStateFactory.getState(orderDetail?.status || OrderStatus.Pending);
                             if (s === stateObj.status) return true;
-                            if (s === OrderStatus.Processing) return stateObj.canProcess();
-                            if (s === OrderStatus.Delivered) return stateObj.canDeliver();
                             if (s === OrderStatus.Cancelled) return stateObj.canCancel();
                             return false;
                           }).map((status) => (

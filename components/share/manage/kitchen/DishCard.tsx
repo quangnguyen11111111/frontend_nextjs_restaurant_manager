@@ -19,12 +19,16 @@ interface DishCardProps {
     dish_name: string;
     dish_image: string;
     total_quantity: number;
+    pending_quantity?: number;
+    processing_quantity?: number;
     waiting_list: WaitingItem[];
   };
   onMarkDone: (orderDetailId: number) => void;
+  onMarkProcessing?: (orderDetailId: number) => void;
+  onMarkAllProcessing?: (dishId: number) => void;
 }
 
-export default function DishCard({ dish, onMarkDone }: DishCardProps) {
+export default function DishCard({ dish, onMarkDone, onMarkProcessing, onMarkAllProcessing }: DishCardProps) {
   const getBadgeColor = (orderedAt: string) => {
     const minutesDiff = (new Date().getTime() - new Date(orderedAt).getTime()) / 60000;
     if (minutesDiff < 5) return "bg-green-500";
@@ -43,11 +47,22 @@ export default function DishCard({ dish, onMarkDone }: DishCardProps) {
           )}
           <div>
             <CardTitle className="text-xl font-bold">{dish.dish_name}</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">Đang chờ phục vụ</p>
+            <div className="flex gap-2 mt-1 text-sm">
+              <span className="text-gray-500 font-medium">Tổng: {dish.total_quantity}</span>
+              <span className="text-red-500 font-medium">Chưa nấu: {dish.pending_quantity ?? 0}</span>
+              <span className="text-orange-500 font-medium">Đang nấu: {dish.processing_quantity ?? 0}</span>
+            </div>
           </div>
         </div>
-        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground text-xl font-bold">
-          {dish.total_quantity}
+        <div className="flex flex-col items-end space-y-2">
+          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground text-xl font-bold">
+            {dish.total_quantity}
+          </div>
+          {dish.pending_quantity !== undefined && dish.pending_quantity > 0 && onMarkAllProcessing && (
+            <Button size="sm" variant="outline" className="text-xs h-7 border-orange-500 text-orange-600 hover:bg-orange-50" onClick={() => onMarkAllProcessing(dish.dish_id)}>
+              Nấu tất cả
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent className="flex-1 p-0 overflow-y-auto max-h-[300px]">
@@ -72,7 +87,20 @@ export default function DishCard({ dish, onMarkDone }: DishCardProps) {
                 <p className="text-sm italic text-orange-500 mt-1">Lưu ý: {item.note}</p>
               )}
             </div>
-            <Button size="sm" onClick={() => onMarkDone(item.order_detail_id)}>XONG</Button>
+            <div>
+              {item.status === 'Pending' ? (
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                  onClick={() => onMarkProcessing && onMarkProcessing(item.order_detail_id)}
+                >
+                  NẤU
+                </Button>
+              ) : (
+                <Button size="sm" onClick={() => onMarkDone(item.order_detail_id)}>XONG</Button>
+              )}
+            </div>
           </div>
         ))}
       </CardContent>
